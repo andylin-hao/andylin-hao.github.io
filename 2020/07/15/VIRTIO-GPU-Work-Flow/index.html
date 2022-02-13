@@ -167,7 +167,7 @@
 
         <div class="article-content markdown-body">
             <h3 id="virtio虚拟化方案"><a href="#virtio虚拟化方案" class="headerlink" title="virtio虚拟化方案"></a>virtio虚拟化方案</h3><p>virtio-gpu属于virtio系列I&#x2F;O虚拟化方案，采用类虚拟化设计，Guest端需要内置virtio驱动（&gt;Linux 4.4均已配置，Android x86源码<code>kernel/drivers/virtio</code>中可查看）。virtio驱动的基本结构为前后端设计，前端为Guest OS驱动，后端为模拟器端逻辑，前后端通过virtqueue队列（由环形缓冲区vring实现）进行数据交换。</p>
-<p><img src="/VIRTIO-GPU-Work-Flow/virtio.gif"></p>
+<p><img src="/virtio.gif"></p>
 <h3 id="Guest端"><a href="#Guest端" class="headerlink" title="Guest端"></a>Guest端</h3><ul>
 <li><p>操作系统启动时遍历PCI总线树，virtio-gpu作为一个PCI设备被OS检测到并注册</p>
 </li>
