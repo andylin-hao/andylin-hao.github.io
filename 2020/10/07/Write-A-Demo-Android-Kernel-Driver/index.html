@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="keywords" content="Hexo Theme Keep">
+    <meta name="description" content="Hexo Theme Keep">
+    <meta name="author" content="Keep Team">
+    
+    <title>
+        
+            Write A Demo Android Kernel Driver |
+        
+        Keep Theme
+    </title>
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <link rel="shortcut icon" href="/images/logo.svg">
+    
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+
+    <script id="hexo-configurations">
+    let KEEP = window.KEEP || {};
+    KEEP.hexo_config = {"hostname":"yoursite.com","root":"/","language":"en"};
+    KEEP.theme_config = {"toc":{"enable":false,"number":false,"expand_all":false,"init_open":false},"style":{"primary_color":"#0066CC","avatar":"/images/avatar.svg","favicon":"/images/logo.svg","article_img_align":"left","left_side_width":"260px","content_max_width":"920px","hover":{"shadow":false,"scale":false},"first_screen":{"enable":false,"background_img":"/images/bg.svg","description":"Keep writing and Keep loving."},"scroll":{"progress_bar":{"enable":false},"percent":{"enable":false}}},"local_search":{"enable":false,"preload":false},"code_copy":{"enable":false,"style":"default"},"pjax":{"enable":false},"lazyload":{"enable":false},"version":"3.4.5"};
+    KEEP.language_ago = {"second":"%s seconds ago","minute":"%s minutes ago","hour":"%s hours ago","day":"%s days ago","week":"%s weeks ago","month":"%s months ago","year":"%s years ago"};
+  </script>
+<meta name="generator" content="Hexo 6.0.0"></head>
+
+
+<body>
+<div class="progress-bar-container">
+    
+
+    
+</div>
+
+
+<main class="page-container">
+
+    
+
+    <div class="page-main-content">
+
+        <div class="page-main-content-top">
+            <header class="header-wrapper">
+
+    <div class="header-content">
+        <div class="left">
+            
+            <a class="logo-title" href="/">
+                Keep Theme
+            </a>
+        </div>
+
+        <div class="right">
+            <div class="pc">
+                <ul class="menu-list">
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/"
+                            >
+                                HOME
+                            </a>
+                        </li>
+                    
+                        <li class="menu-item">
+                            <a class=""
+                               href="/archives"
+                            >
+                                ARCHIVES
+                            </a>
+                        </li>
+                    
+                    
+                </ul>
+            </div>
+            <div class="mobile">
+                
+                <div class="icon-item menu-bar">
+                    <div class="menu-bar-middle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-drawer">
+        <ul class="drawer-menu-list">
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/">HOME</a>
+                </li>
+            
+                <li class="drawer-menu-item flex-center">
+                    <a class=""
+                       href="/archives">ARCHIVES</a>
+                </li>
+            
+        </ul>
+    </div>
+
+    <div class="window-mask"></div>
+
+</header>
+
+
+        </div>
+
+        <div class="page-main-content-middle">
+
+            <div class="main-content">
+
+                
+                    <div class="fade-in-down-animation">
+    <div class="article-content-container">
+
+        <div class="article-title">
+            <span class="title-hover-animation">Write A Demo Android Kernel Driver</span>
+        </div>
+
+        
+            <div class="article-header">
+                <div class="avatar">
+                    <img src="/images/avatar.svg">
+                </div>
+                <div class="info">
+                    <div class="author">
+                        <span class="name">Keep Team</span>
+                        
+                            <span class="author-label">Lv1</span>
+                        
+                    </div>
+                    <div class="meta-info">
+                        <div class="article-meta-info">
+    <span class="article-date article-meta-item">
+        <i class="fas fa-edit"></i>&nbsp;
+        <span class="pc">2020-10-07 13:57:45</span>
+        <span class="mobile">2020-10-07 13:57</span>
+    </span>
+    
+    
+        <span class="article-tags article-meta-item">
+            <i class="fas fa-tags"></i>&nbsp;
+            <ul>
+                
+                    <li>
+                        <a href="/tags/Android-Kernel-Driver/">Android Kernel Driver</a>&nbsp;
+                    </li>
+                
+            </ul>
+        </span>
+    
+
+    
+    
+    
+    
+</div>
+
+                    </div>
+                </div>
+            </div>
+        
+
+        <div class="article-content markdown-body">
+            <h1 id="Environment"><a href="#Environment" class="headerlink" title="Environment"></a>Environment</h1><ul>
+<li>Android version: Android-x86 (q-x86, x86_64_userdebug)</li>
+<li>QEMU: 5.1</li>
+<li>Host: Ubuntu 20.04</li>
+</ul>
+<h1 id="A-Demo-Driver"><a href="#A-Demo-Driver" class="headerlink" title="A Demo Driver"></a>A Demo Driver</h1><ul>
+<li><p>Create a new directory in ${android-source-root}&#x2F;kernel&#x2F;drivers named <code>hello</code></p>
+</li>
+<li><p><code>cd $&#123;android-source-root&#125;/kernel/drivers/hello</code></p>
+</li>
+<li><p>Create a new C file named <code>hello.c</code>, with the following content:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c"><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/module.h&gt;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/kernel.h&gt;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/fs.h&gt;</span>  </span><br><span class="hljs-meta">#<span class="hljs-keyword">include</span> <span class="hljs-string">&lt;linux/miscdevice.h&gt;</span>  </span><br><br>MODULE_LICENSE(<span class="hljs-string">&quot;GPL&quot;</span>);  <br>MODULE_AUTHOR(<span class="hljs-string">&quot;AndyLin&quot;</span>);  <br>MODULE_DESCRIPTION(<span class="hljs-string">&quot;Hello Kernel Device&quot;</span>);  <br>MODULE_VERSION(<span class="hljs-string">&quot;1.0&quot;</span>);  <br><br><span class="hljs-meta">#<span class="hljs-keyword">define</span> CMD_COMMAND 0x1336  </span><br><br><span class="hljs-type">long</span> <span class="hljs-title function_">hello_ioctl</span><span class="hljs-params">(<span class="hljs-keyword">struct</span> file *filp,</span><br><span class="hljs-params">    <span class="hljs-type">unsigned</span> <span class="hljs-type">int</span> cmd,  </span><br><span class="hljs-params">    <span class="hljs-type">unsigned</span> <span class="hljs-type">long</span> arg)</span>&#123;  <br>    <span class="hljs-keyword">switch</span>(cmd)&#123;  <br>    <span class="hljs-keyword">case</span> CMD_COMMAND:  <br>        printk(<span class="hljs-string">&quot;Hello Module hello_ioctl() exced&quot;</span>);  <br>        <span class="hljs-keyword">break</span>;  <br>    <span class="hljs-keyword">default</span>:  <br>        printk(<span class="hljs-string">&quot;Hello Module unknown ioctl cmd&quot;</span>);  <br>    &#125;  <br>    <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;  <br>&#125;  <br><br><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">file_operations</span> <span class="hljs-title">hello_fops</span> =</span> &#123;<br>    unlocked_ioctl: hello_ioctl  <br>&#125;;  <br><br><span class="hljs-type">static</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">miscdevice</span> <span class="hljs-title">hello_device</span> =</span> &#123;<br>    minor: MISC_DYNAMIC_MINOR,  <br>    name: <span class="hljs-string">&quot;hello&quot;</span>,  <br>    fops: &amp;hello_fops,  <br>    mode: <span class="hljs-number">777</span><br>&#125;;  <br><br><span class="hljs-type">static</span> <span class="hljs-type">int</span> <span class="hljs-title function_">hello_begin</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;  <br>    <span class="hljs-type">int</span> ret;  <br>    ret = misc_register(&amp;hello_device);<br>    <span class="hljs-keyword">if</span>(ret)  <br>        printk(<span class="hljs-string">&quot;Failed to register misc device&quot;</span>);  <br>    <span class="hljs-keyword">else</span>  <br>        printk(<span class="hljs-string">&quot;Hello Module successfully loaded&quot;</span>);  <br><br>    <span class="hljs-keyword">return</span> ret;  <br>&#125;  <br><br><span class="hljs-type">static</span> <span class="hljs-type">void</span> <span class="hljs-title function_">hello_exit</span><span class="hljs-params">(<span class="hljs-type">void</span>)</span>&#123;  <br>    misc_deregister(&amp;hello_device);<br>    printk(<span class="hljs-string">&quot;Hello module exit&quot;</span>); <br>    <span class="hljs-keyword">return</span>; <br>&#125;  <br><br>module_init(hello_begin);<br>module_exit(hello_exit); <br></code></pre></td></tr></table></figure>
+</li>
+<li><p>In the <code>$&#123;android-source-root&#125;</code>, run the following commands to build the kernel first:</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><code class="hljs shell">source build/envsetup.sh<br>lunch android_x86_64-userdebug<br>make kernel -j$&#123;thread_num&#125;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>Create a <code>MakeFile</code> in the <code>hello</code> directory:</p>
+<figure class="highlight c"><table><tr><td class="code"><pre><code class="hljs c">obj-m := hello.o  <br><br><span class="hljs-comment">// This is why we build kernel first -- in order to generate the kernel directory</span><br>KERNELDIR := $&#123;android-source-root&#125;/out/target/product/x86_64/obj/kernel/<br>PWD :=$(shell pwd)  <br>ARCH=x86_64<br>CROSS_COMPILE=$&#123;android-source-root&#125;/prebuilts/gcc/linux-x86/x86/x86_64-linux-android<span class="hljs-number">-4.9</span>/bin/x86_64-linux-android-  <br>CC=$(CROSS_COMPILE)gcc  <br>LD=$(CROSS_COMPILE)ld  <br>CFLAGS_MODULE=-fno-pic  <br><br>all:  <br>	make -C $(KERNELDIR) ARCH=$(ARCH) CROSS_COMPILE=$(CROSS_COMPILE) M=$(PWD) modules<br>clean:    <br>	rm *.o *.ko *.mod.c *.order *.symvers<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>Now we can finally <code>make</code></p>
+</li>
+<li><p>After <code>make</code>, you can see a <code>hello.ko</code> file in the directory</p>
+</li>
+<li><p>Now you can build your Android-x86 and run it atop QEMU (you might run into compilation errors due to dirty <code>kernel</code> directory caused by <code>make kernel</code>; if that happens, you can first run <code>make mrproper</code> in the <code>kernel</code> directory before building the entire system)</p>
+</li>
+<li><p>Connect to the system via <code>adb</code> (note that you should first turn on your WiFi in Android, and you can connect to it by running <code>adb connect localhost:4444</code>, if your QEMU booting command contains the following: <code>-net nic -net user,hostfwd=tcp::4444-:555</code></p>
+</li>
+<li><p>Use <code>adb</code> to push the <code>hello.ko</code> to Android’s any directory as you please</p>
+</li>
+<li><p>In <code>adb shell</code>, run <code>insmod $&#123;path-to-the-hello.ko-file&#125;</code></p>
+</li>
+<li><p>Now you are all done! You can use <code>dmesg | grep Hello</code> to check the output in the driver’s code</p>
+</li>
+</ul>
+
+        </div>
+
+        
+
+        
+            <ul class="post-tags-box">
+                
+                    <li class="tag-item">
+                        <a href="/tags/Android-Kernel-Driver/">#Android Kernel Driver</a>&nbsp;
+                    </li>
+                
+            </ul>
+        
+
+        
+            <div class="article-nav">
+                
+                    <div class="article-prev">
+                        <a class="prev"
+                           rel="prev"
+                           href="/2020/10/16/Importing-Linux-Kernel-Code-to-VS-Code-and-Enjoying-Code-Navigation/"
+                        >
+                            <span class="left arrow-icon flex-center">
+                              <i class="fas fa-chevron-left"></i>
+                            </span>
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">Importing Linux Kernel Code to VS Code and Enjoying Code Navigation</span>
+                                <span class="post-nav-item">Prev posts</span>
+                            </span>
+                        </a>
+                    </div>
+                
+                
+                    <div class="article-next">
+                        <a class="next"
+                           rel="next"
+                           href="/2020/07/15/VIRTIO-GPU-Work-Flow/"
+                        >
+                            <span class="title flex-center">
+                                <span class="post-nav-title-item">VIRTIO-GPU Work Flow</span>
+                                <span class="post-nav-item">Next posts</span>
+                            </span>
+                            <span class="right arrow-icon flex-center">
+                              <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </a>
+                    </div>
+                
+            </div>
+        
+
+        
+    </div>
+</div>
+
+
+                
+            </div>
+
+        </div>
+
+        <div class="page-main-content-bottom">
+            <footer class="footer">
+    <div class="info-container">
+        <div class="copyright-info info-item">
+            &copy;
+            
+              <span>2020</span>
+              -
+            
+            2022&nbsp;<i class="fas fa-heart icon-animate"></i>&nbsp;<a href="/">Keep Team</a>
+        </div>
+        
+        <div class="theme-info info-item">
+            Powered by <a target="_blank" href="https://hexo.io">Hexo</a>&nbsp;|&nbsp;Theme&nbsp;<a class="theme-version" target="_blank" href="https://github.com/XPoet/hexo-theme-keep">Keep v3.4.5</a>
+        </div>
+        
+        
+    </div>
+</footer>
+
+        </div>
+    </div>
+
+    
+        <div class="post-tools">
+            <div class="post-tools-container">
+    <ul class="tools-list">
+        <!-- TOC aside toggle -->
+        
+
+        <!-- go comment -->
+        
+    </ul>
+</div>
+
+        </div>
+    
+
+    <div class="right-bottom-side-tools">
+        <div class="side-tools-container">
+    <ul class="side-tools-list">
+        <li class="tools-item tool-font-adjust-plus flex-center">
+            <i class="fas fa-search-plus"></i>
+        </li>
+
+        <li class="tools-item tool-font-adjust-minus flex-center">
+            <i class="fas fa-search-minus"></i>
+        </li>
+
+        <li class="tools-item tool-expand-width flex-center">
+            <i class="fas fa-arrows-alt-h"></i>
+        </li>
+
+        <li class="tools-item tool-dark-light-toggle flex-center">
+            <i class="fas fa-moon"></i>
+        </li>
+
+        <!-- rss -->
+        
+
+        
+            <li class="tools-item tool-scroll-to-top flex-center">
+                <i class="fas fa-arrow-up"></i>
+            </li>
+        
+
+        <li class="tools-item tool-scroll-to-bottom flex-center">
+            <i class="fas fa-arrow-down"></i>
+        </li>
+    </ul>
+
+    <ul class="exposed-tools-list">
+        <li class="tools-item tool-toggle-show flex-center">
+            <i class="fas fa-cog fa-spin"></i>
+        </li>
+        
+    </ul>
+</div>
+
+    </div>
+
+    
+
+    <div class="image-viewer-container">
+    <img src="">
+</div>
+
+
+    
+
+</main>
+
+
+
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/main.js"></script>
+
+<script src="/js/header-shrink.js"></script>
+
+<script src="/js/back2top.js"></script>
+
+<script src="/js/dark-light-toggle.js"></script>
+
+
+
+
+
+
+
+
+<div class="post-scripts">
+    
+</div>
+
+
+
+</body>
+</html>
