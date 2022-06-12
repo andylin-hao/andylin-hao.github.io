@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.9.0">Jekyll</generator><link href="http://127.0.0.1:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://127.0.0.1:4000/" rel="alternate" type="text/html" /><updated>2022-06-12T06:34:58-07:00</updated><id>http://127.0.0.1:4000/feed.xml</id><title type="html">Hao Lin’s Home Page</title><subtitle>A PhD student at Tsinghua University, who is interested in operating systems and system measurement.</subtitle><author><name>Hao Lin</name></author><entry><title type="html">Linux Graphics Stack</title><link href="http://127.0.0.1:4000/posts/linux-graphics-stack" rel="alternate" type="text/html" title="Linux Graphics Stack" /><published>2021-04-25T10:00:55-07:00</published><updated>2021-04-25T10:00:55-07:00</updated><id>http://127.0.0.1:4000/posts/Linux-Graphics-Stack</id><content type="html" xml:base="http://127.0.0.1:4000/posts/linux-graphics-stack">&lt;p&gt;Due to heavy historical burden, the Linux graphics stack is extremely complex with fragmented and intricate software components. As a result, it’s quite exhausting to fully grasp its core idea and principles. This has posed significant challenges to my recent work on graphics virtualization of Android. Fortunately, after days of struggling with its sources and prior technical posts, I may have obtained some levels of understandings regarding the framework of the Linux graphics stack. SO, before I completely lose track of the story and to benefit other unfortunate comrades, I decide to document everything here in this post.&lt;/p&gt;
+
+&lt;p&gt;Hope you’ll find it useful.&lt;/p&gt;
+
+&lt;h1 id=&quot;overview&quot;&gt;Overview&lt;/h1&gt;
+&lt;p&gt;Before we get started, I’ll just throw an architectural graph at you for three purposes:&lt;/p&gt;
+
+&lt;p&gt;1) for you to have some basic ideas of the graphics stack’s various components to be discussed in this post, 
+2) for you to reference each component’s position in the whole stack when reading the parts to follow, and
+3) for you to understand the chaos and challenges ahead.&lt;/p&gt;
+
+&lt;p&gt;Here it comes:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://127.0.0.1:4000/images/posts/graphics stack.svg&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Note that this graph only demonstrates a common architecture of today’s Linux graphics stack built upon the Direct Rendering Infrastructure (DRI).
+As other architectures are now rarely used, they are out of this post’s scope.&lt;/p&gt;
+
+&lt;p&gt;Now you are familiarized with the architecture, I’ll next introduce the components within and their rationale behind by walking you through the history and showing you the reasons they came to be in the first place.&lt;/p&gt;
+
+&lt;h1 id=&quot;indirect-rendering&quot;&gt;Indirect Rendering&lt;/h1&gt;
+
+&lt;p&gt;Nothing is complex in the beginning. The same goes for the Linux graphics. In the early days, only one software in the system is responsible for graphics rendering and communicating with the GPU — X server. Applications use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;libX11&lt;/code&gt; to tell the X server how to render graphics. After the X server receives hardware-independent rendering commands (defined in the X11 protocol, thus known as Device-Independent X, or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DIX&lt;/code&gt;) from applications, it then translates these commands into hardware languages that the GPU can understand (e.g., register writes and memory allocations). This translation software module inside the X server is commonly referred to as Device-Dependent X driver, or &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DDX&lt;/code&gt; driver. Here “driver” is a graphic argot that differs from what you have probably learned in OS design — the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DDX&lt;/code&gt; driver actually operates in the user space rather than in the kernel space as most OS drivers do. Intuitively, to accommodate heterogeneous GPUs, many &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DDX&lt;/code&gt; drivers should be developed accordingly.&lt;/p&gt;
+
+&lt;p&gt;At that time, only 2D rendering is necessary for computer graphics. Therefore, the initial &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;libX11&lt;/code&gt; only includes 2D-related operations. However, with the advent of 3D graphics, the above-described architecture soon fails to satisfy people’s needs. To perform 3D rendering on heterogeneous hardware,
+OpenGL is developed as the new GPU-agnostic interfaces for 3D operations. Specifically, OpenGL is only a series of function specifications that dictate only “what they do” but do not restrict “how to do it”. Thus, the actual OpenGL implementation is totally delegated to the system, which normally can be found in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;libGL.so&lt;/code&gt; your 3D applications link to.&lt;/p&gt;
+
+&lt;p&gt;To fully exploit the hardware capability and avoid complete refactoring of the whole stack, the initial implementation of OpenGL is built upon the 2D X server architecture. The technique that makes this possible is what we call the GL eXtenstion (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GLX&lt;/code&gt;) of the X11 protocol. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GLX&lt;/code&gt; is a wapper that wraps OpenGL function calls in X11. The X server then similarly receives X11 commands and translates them into the hardware language as before. Since this process involves wrapping into X11 and intervention of the X server rather than directly asks GPU to perform 3D operations, it is thus later known as indirect rendering (the left path of our architecture graph).&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, soon this indirect approach became insufficient for emerging 3D-intensive applications (e.g., 3D games) as it takes unnecessary detour to reach hardware. To address this, direct rendering is proposed.&lt;/p&gt;
+
+&lt;h1 id=&quot;direct-rendering&quot;&gt;Direct Rendering&lt;/h1&gt;</content><author><name>Hao Lin</name></author><category term="Linux" /><category term="Graphics" /><summary type="html">Due to heavy historical burden, the Linux graphics stack is extremely complex with fragmented and intricate software components. As a result, it’s quite exhausting to fully grasp its core idea and principles. This has posed significant challenges to my recent work on graphics virtualization of Android. Fortunately, after days of struggling with its sources and prior technical posts, I may have obtained some levels of understandings regarding the framework of the Linux graphics stack. SO, before I completely lose track of the story and to benefit other unfortunate comrades, I decide to document everything here in this post.</summary></entry><entry><title type="html">Importing Linux Kernel Code to VS Code and Enjoying Code Navigation</title><link href="http://127.0.0.1:4000/posts/import-kernel" rel="alternate" type="text/html" title="Importing Linux Kernel Code to VS Code and Enjoying Code Navigation" /><published>2020-10-16T00:00:00-07:00</published><updated>2020-10-16T00:00:00-07:00</updated><id>http://127.0.0.1:4000/posts/Import-Kernel</id><content type="html" xml:base="http://127.0.0.1:4000/posts/import-kernel">&lt;p&gt;In this post I’ll take you to import kernel code to VS Code for a nice code viewing and developing experience. You can say goodbye to CLion which eats your memory without mercy. This tutorial will be based on the Android-x86 source tree which contains Linux kernel almost identical to the upstream kernel.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;The first step is installing VS Code of course. I’ll simply skip this step for any experienced developers.&lt;/li&gt;
+  &lt;li&gt;Now search and install the C/C++ Extension in VS Code’s extension market.&lt;/li&gt;
+  &lt;li&gt;Build the kernel before you do anything else.&lt;/li&gt;
+  &lt;li&gt;Use a magical script named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;gen_compile_commands.py&lt;/code&gt; in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kernel/script&lt;/code&gt; file. If it does not exist, you can find it in the upstream Linux kernel repository (https://github.com/torvalds/linux/blob/master/scripts/gen_compile_commands.py).&lt;/li&gt;
+  &lt;li&gt;Run the command by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;python gen_compile_commands.py -d ${path-to-kernel-build-directory}&lt;/code&gt;. In the case of Android-x86, the corresponding kernel build path is &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;out/target/product/{x86_64}/obj/kernel&lt;/code&gt; ({} denotes that this name can vary depending on your chosen build target).&lt;/li&gt;
+  &lt;li&gt;After that you can find you &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;compile_commands.json&lt;/code&gt; in the kernel build path.&lt;/li&gt;
+  &lt;li&gt;Now go back to VS Code and enter &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Ctrl+Shift+P&lt;/code&gt; to initiate command execution.&lt;/li&gt;
+  &lt;li&gt;Enter &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;&amp;gt;C/C++: Edit Configurations (UI)&lt;/code&gt; (you should get prompted even if you have not finished the command).&lt;/li&gt;
+  &lt;li&gt;Now open &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Advanced Settings&lt;/code&gt; and find the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Compile commands&lt;/code&gt; setting.&lt;/li&gt;
+  &lt;li&gt;Enter the path to your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;compile_commands.json&lt;/code&gt; and you are good to go! Enjoy  your VS Code journey.&lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Hao Lin</name></author><category term="Kernel" /><category term="Code" /><summary type="html">In this post I’ll take you to import kernel code to VS Code for a nice code viewing and developing experience. You can say goodbye to CLion which eats your memory without mercy. This tutorial will be based on the Android-x86 source tree which contains Linux kernel almost identical to the upstream kernel.</summary></entry><entry><title type="html">Write A Demo Android Kernel Driver</title><link href="http://127.0.0.1:4000/posts/demo-driver" rel="alternate" type="text/html" title="Write A Demo Android Kernel Driver" /><published>2020-10-07T06:57:45-07:00</published><updated>2020-10-07T06:57:45-07:00</updated><id>http://127.0.0.1:4000/posts/Write-A-Demo-Android-Kernel-Driver</id><content type="html" xml:base="http://127.0.0.1:4000/posts/demo-driver">&lt;p&gt;This post will talk about how to write a small “hello-world” driver in Android kernel.&lt;/p&gt;
+
+&lt;h1 id=&quot;environment&quot;&gt;Environment&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Android version: Android-x86 (q-x86, x86_64_userdebug)&lt;/li&gt;
+  &lt;li&gt;QEMU: 5.1&lt;/li&gt;
+  &lt;li&gt;Host: Ubuntu 20.04&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&quot;a-demo-driver&quot;&gt;A Demo Driver&lt;/h1&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Create a new directory in ${android-source-root}/kernel/drivers named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;hello&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cd ${android-source-root}/kernel/drivers/hello&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Create a new C file named &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;hello.c&lt;/code&gt;, with the following content:&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#include &amp;lt;linux/module.h&amp;gt;  
+#include &amp;lt;linux/kernel.h&amp;gt;  
+#include &amp;lt;linux/fs.h&amp;gt;  
+#include &amp;lt;linux/miscdevice.h&amp;gt;  
+&lt;/span&gt;  
+&lt;span class=&quot;n&quot;&gt;MODULE_LICENSE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;GPL&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+&lt;span class=&quot;n&quot;&gt;MODULE_AUTHOR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;AndyLin&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+&lt;span class=&quot;n&quot;&gt;MODULE_DESCRIPTION&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hello Kernel Device&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+&lt;span class=&quot;n&quot;&gt;MODULE_VERSION&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;1.0&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+  
+&lt;span class=&quot;cp&quot;&gt;#define CMD_COMMAND 0x1336  
+&lt;/span&gt;  
+&lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;hello_ioctl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;filp&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  
+    &lt;span class=&quot;kt&quot;&gt;unsigned&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;long&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;arg&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;  
+    &lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;  
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CMD_COMMAND&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;  
+        &lt;span class=&quot;n&quot;&gt;printk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hello Module hello_ioctl() exced&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;  
+    &lt;span class=&quot;nl&quot;&gt;default:&lt;/span&gt;  
+        &lt;span class=&quot;n&quot;&gt;printk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hello Module unknown ioctl cmd&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;  
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
+  
+&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;file_operations&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hello_fops&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;unlocked_ioctl:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hello_ioctl&lt;/span&gt;  
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;  
+  
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;miscdevice&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hello_device&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;minor:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MISC_DYNAMIC_MINOR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  
+    &lt;span class=&quot;nl&quot;&gt;name:&lt;/span&gt; &lt;span class=&quot;s&quot;&gt;&quot;hello&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  
+    &lt;span class=&quot;nl&quot;&gt;fops:&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hello_fops&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;  
+    &lt;span class=&quot;nl&quot;&gt;mode:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;777&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;  
+  
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;hello_begin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;  
+    &lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;  
+    &lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;misc_register&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hello_device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  
+        &lt;span class=&quot;n&quot;&gt;printk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Failed to register misc device&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+    &lt;span class=&quot;k&quot;&gt;else&lt;/span&gt;  
+        &lt;span class=&quot;n&quot;&gt;printk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hello Module successfully loaded&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;  
+  
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ret&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;  
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
+  
+&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;hello_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;){&lt;/span&gt;  
+    &lt;span class=&quot;n&quot;&gt;misc_deregister&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hello_device&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;printk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Hello module exit&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; 
+    &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;  
+  
+&lt;span class=&quot;n&quot;&gt;module_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hello_begin&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;module_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hello_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;In the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;${android-source-root}&lt;/code&gt;, run the following commands to build the kernel first:&lt;/p&gt;
+
+    &lt;div class=&quot;language-shell highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;source &lt;/span&gt;build/envsetup.sh
+lunch android_x86_64-userdebug
+make kernel &lt;span class=&quot;nt&quot;&gt;-j&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;${&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;thread_num&lt;/span&gt;&lt;span class=&quot;k&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Create a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MakeFile&lt;/code&gt; in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;hello&lt;/code&gt; directory:&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;m&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt;  
+  
+&lt;span class=&quot;c1&quot;&gt;// This is why we build kernel first -- in order to generate the kernel directory&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;KERNELDIR&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;android&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;out&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;product&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x86_64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;kernel&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PWD&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:=&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;shell&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pwd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;  
+&lt;span class=&quot;n&quot;&gt;ARCH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x86_64&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;CROSS_COMPILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;android&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;source&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;prebuilts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gcc&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linux&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x86&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x86&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x86_64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linux&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;android&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;9&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;bin&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x86_64&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;linux&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;android&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;  
+&lt;span class=&quot;n&quot;&gt;CC&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CROSS_COMPILE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;gcc&lt;/span&gt;  
+&lt;span class=&quot;n&quot;&gt;LD&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CROSS_COMPILE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ld&lt;/span&gt;  
+&lt;span class=&quot;n&quot;&gt;CFLAGS_MODULE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;fno&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pic&lt;/span&gt;  
+  
+&lt;span class=&quot;n&quot;&gt;all&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;  
+	&lt;span class=&quot;n&quot;&gt;make&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;C&lt;/span&gt; &lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;KERNELDIR&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ARCH&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ARCH&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;CROSS_COMPILE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CROSS_COMPILE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;M&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;err&quot;&gt;$&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PWD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;modules&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;clean&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;    
+	&lt;span class=&quot;n&quot;&gt;rm&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;o&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ko&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mod&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;c&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;order&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;symvers&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Now we can finally &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;make&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;After &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;make&lt;/code&gt;, you can see a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;hello.ko&lt;/code&gt; file in the directory&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Now you can build your Android-x86 and run it atop QEMU (you might run into compilation errors due to dirty &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kernel&lt;/code&gt; directory caused by &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;make kernel&lt;/code&gt;; if that happens, you can first run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;make mrproper&lt;/code&gt; in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kernel&lt;/code&gt; directory before building the entire system)&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Connect to the system via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;adb&lt;/code&gt; (note that you should first turn on your WiFi in Android, and you can connect to it by running &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;adb connect localhost:4444&lt;/code&gt;, if your QEMU booting command contains the following: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;-net nic -net user,hostfwd=tcp::4444-:555&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;adb&lt;/code&gt; to push the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;hello.ko&lt;/code&gt; to Android’s any directory as you please&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;In &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;adb shell&lt;/code&gt;, run &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;insmod ${path-to-the-hello.ko-file}&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Now you are all done! You can use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dmesg | grep Hello&lt;/code&gt; to check the output in the driver’s code&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Hao Lin</name></author><category term="Android" /><category term="Kernel" /><category term="Driver" /><summary type="html">This post will talk about how to write a small “hello-world” driver in Android kernel.</summary></entry><entry><title type="html">VIRTIO-GPU Work Flow</title><link href="http://127.0.0.1:4000/posts/virtio-gpu" rel="alternate" type="text/html" title="VIRTIO-GPU Work Flow" /><published>2020-07-15T10:51:04-07:00</published><updated>2020-07-15T10:51:04-07:00</updated><id>http://127.0.0.1:4000/posts/VIRTIO-GPU-Workflow</id><content type="html" xml:base="http://127.0.0.1:4000/posts/virtio-gpu">&lt;p&gt;virtio-gpu属于virtio系列I/O虚拟化方案，采用类虚拟化设计，Guest端需要内置virtio驱动（&amp;gt;Linux 4.4均已配置，Android x86源码&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kernel/drivers/virtio&lt;/code&gt;中可查看）。virtio驱动的基本结构为前后端设计，前端为Guest OS驱动，后端为模拟器端逻辑，前后端通过virtqueue队列（由环形缓冲区vring实现）进行数据交换。&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;http://127.0.0.1:4000/images/posts/virtio.gif&quot; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&quot;guest端&quot;&gt;Guest端&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;操作系统启动时遍历PCI总线树，virtio-gpu作为一个PCI设备被OS检测到并注册&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_pci_common.c&lt;/code&gt;中的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_pci_probe&lt;/code&gt;函数会根据PCI设备号创建&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_pci_device&lt;/code&gt;，并将其添加到&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_bus&lt;/code&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;在&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/sys/bus/virtio/drivers&lt;/code&gt;中可以看到&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio-gpu&lt;/code&gt;设备&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;运行一个OpenGL应用，此时该应用会调用OpenGL库进行图形绘制&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;OpenGL指令会送至内核中的DRM（Direct Rendering Management）图形驱动，DRM驱动向GPU下达相应的图形指令（着色、光栅化、贴图什么的），具体的OpenGL-&amp;gt;DRM-&amp;gt;GPU流程看这里https://www.cnblogs.com/shoemaker/p/linux_graphics01.html&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Guest端的virtio-gpu设备截获DRM的相关指令，然后转换分解为自己定义的一套指令（具体指令类型见后）&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;将指令放到virtqueue中，然后告知QEMU：&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;virtqueue_notify&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;vq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;notify&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;_vq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;--&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vp_notify&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;iowrite16&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vq&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;vp_dev&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ioaddr&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_PCI_QUEUE_NOTIFY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;方法是Guest写I/O寄存器，触发VM Exit进入到KVM中处理，进入到Host端流程&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&quot;host端&quot;&gt;Host端&lt;/h3&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;KVM无法处理而退出，处理退出原因发现是&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KVM_EXIT_IO&lt;/code&gt;，进而调用相应的Handle函数&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;int&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;kvm_cpu_exec&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;CPUArchState&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;run_ret&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;kvm_vcpu_ioctl&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;env&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KVM_RUN&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;run&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;exit_reason&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;cm&quot;&gt;/* 处理退出原因 */&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;KVM_EXIT_IO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;kvm_handle_io&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;();&lt;/span&gt;
+            &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;kvm_handle_io&lt;/code&gt;通过&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;write eventfd&lt;/code&gt;将等待&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;poll&lt;/code&gt;的QEMU主线程唤醒，然后一步步走到virtio-gpu的I/O handlers。其中与virtio-gpu有关的virtqueue有两个：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ctrl_vq&lt;/code&gt;负责交换图形命令，&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;cursor_vq&lt;/code&gt;负责交换光标信息；&lt;/p&gt;
+
+    &lt;p&gt;从而相应也有两个handlers：&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_gpu_handle_ctrl&lt;/code&gt;和&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_gpu_handle_cursor&lt;/code&gt;，两个函数在&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;hw/display/virtio-gpu.c&lt;/code&gt;；&lt;/p&gt;
+
+    &lt;p&gt;handler的注册在GCC编译时设定为在main函数前执行，位于&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_gpu_device_realize&lt;/code&gt;函数中，具体见QOM编程模型https://blog.csdn.net/u011364612/article/details/53581411和相关的GCC trickhttps://blog.csdn.net/u011364612/article/details/53581501&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;main&lt;/span&gt;  &lt;span class=&quot;n&quot;&gt;main_loop&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;main_loop_wait&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;os_host_main_loop_wait&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;glib_pollfds_poll&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;g_main_context_dispatch&lt;/span&gt; 
+                &lt;span class=&quot;n&quot;&gt;aio_ctx_dispatch&lt;/span&gt;    &lt;span class=&quot;n&quot;&gt;aio_dispatch&lt;/span&gt;
+                    &lt;span class=&quot;n&quot;&gt;virtio_queue_host_notifier_read&lt;/span&gt;
+                        &lt;span class=&quot;n&quot;&gt;virtio_queue_notify_vq&lt;/span&gt; 
+                            &lt;span class=&quot;n&quot;&gt;virtio_gpu_handle_ctrl&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;virtio_gpu_handle_cursor&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;以&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_gpu_handle_ctrl&lt;/code&gt;继续向下，到&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_gpu_handle_ctrl&lt;/code&gt;，其首先从virtqueue中取出Guest端传来的命令，然后进行处理&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;virtio_gpu_process_cmdq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VirtIOGPU&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;virtio_gpu_ctrl_command&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+  
+    &lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;QTAILQ_EMPTY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmdq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;cm&quot;&gt;/* 取命令 */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;QTAILQ_FIRST&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmdq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+          
+        &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+  
+        &lt;span class=&quot;cm&quot;&gt;/* 处理命令 */&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;VIRGL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;virtio_gpu_virgl_process_cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;virtio_gpu_simple_process_cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+              &lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;QTAILQ_REMOVE&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmdq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;p&quot;&gt;...&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_gpu_ctrl_command&lt;/code&gt;为Guest端解析DRM驱动指令重新构成的virtio命令格式&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;virtio_gpu_ctrl_command&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;VirtQueueElement&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;elem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;                       &lt;span class=&quot;c1&quot;&gt;// 取出的命令被映射到这里&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;VirtQueue&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;vq&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;                               &lt;span class=&quot;c1&quot;&gt;// Host/Guest共享的队列&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;virtio_gpu_ctrl_hdr&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd_hdr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;          &lt;span class=&quot;c1&quot;&gt;// 命令指定的header，指定了命令类型&lt;/span&gt;
+    &lt;span class=&quot;kt&quot;&gt;uint32_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;bool&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;finished&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;QTAILQ_ENTRY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;virtio_gpu_ctrl_command&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;next&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;};&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;处理命令的&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;VIRGL&lt;/code&gt;宏如下，这里用了&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;libvirglrenderer&lt;/code&gt;&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;cp&quot;&gt;#ifdef CONFIG_VIRGL
+#include &amp;lt;virglrenderer.h&amp;gt;
+#define VIRGL(_g, _virgl, _simple, ...)                     \
+    do {                                                    \
+        if (_g-&amp;gt;parent_obj.use_virgl_renderer) {            \
+            _virgl(__VA_ARGS__);                            \
+        } else {                                            \
+            _simple(__VA_ARGS__);                           \
+        }                                                   \
+    } while (0)
+#else
+#define VIRGL(_g, _virgl, _simple, ...)                 \
+    do {                                                \
+        _simple(__VA_ARGS__);                           \
+    } while (0)
+#endif
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;有&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virgl&lt;/code&gt;支持则能进行3D加速，否则只能进行2D加速，在Windows上目前直接使用&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio-vga&lt;/code&gt;会黑屏可能是已经没有所谓的2D加速这种东西了吧&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;_simple&lt;/code&gt;对应&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;virtio_gpu_simple_process_cmd&lt;/code&gt;，3D加速对应的函数差不多&lt;/p&gt;
+
+    &lt;div class=&quot;language-c highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;static&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;void&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;virtio_gpu_simple_process_cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;VirtIOGPU&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;
+                                          &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;virtio_gpu_ctrl_command&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_FILL_CMD&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd_hdr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;virtio_gpu_ctrl_hdr_bswap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd_hdr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+  
+    &lt;span class=&quot;k&quot;&gt;switch&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd_hdr&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;c1&quot;&gt;//type就是命令类型&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_GET_DISPLAY_INFO&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_get_display_info&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_GET_EDID&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_get_edid&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_RESOURCE_CREATE_2D&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;          &lt;span class=&quot;c1&quot;&gt;// 创建2D资源，仅有长宽和格式，没有像素信息，像素信息单独传&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_resource_create_2d&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_RESOURCE_UNREF&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_resource_unref&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_RESOURCE_FLUSH&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;             &lt;span class=&quot;c1&quot;&gt;// 将处理好的图形送到显示器&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_resource_flush&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_TRANSFER_TO_HOST_2D&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;        &lt;span class=&quot;c1&quot;&gt;// 交给Host的pixman库进行图形处理，比如明暗、光栅化处理&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_transfer_to_host_2d&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_SET_SCANOUT&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_set_scanout&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_RESOURCE_ATTACH_BACKING&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;    &lt;span class=&quot;c1&quot;&gt;// 获取像素信息并和2D资源绑定&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_resource_attach_backing&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_CMD_RESOURCE_DETACH_BACKING&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_resource_detach_backing&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;nl&quot;&gt;default:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_RESP_ERR_UNSPEC&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;break&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;!&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;finished&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;virtio_gpu_ctrl_response_nodata&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;g&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;?&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;cmd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;error&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;:&lt;/span&gt;
+                                        &lt;span class=&quot;n&quot;&gt;VIRTIO_GPU_RESP_OK_NODATA&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;    &lt;/div&gt;
+
+    &lt;p&gt;具体的各流程和结构体解释见https://blog.csdn.net/huang987246510/article/details/106254294/&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;pixman&lt;/code&gt;库处理完后由&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;dpy_gfx_update&lt;/code&gt;刷新显示器&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;</content><author><name>Hao Lin</name></author><category term="VIRTIO" /><category term="Emulator" /><category term="QEMU" /><category term="GPU" /><summary type="html">virtio-gpu属于virtio系列I/O虚拟化方案，采用类虚拟化设计，Guest端需要内置virtio驱动（&amp;gt;Linux 4.4均已配置，Android x86源码kernel/drivers/virtio中可查看）。virtio驱动的基本结构为前后端设计，前端为Guest OS驱动，后端为模拟器端逻辑，前后端通过virtqueue队列（由环形缓冲区vring实现）进行数据交换。</summary></entry></feed>

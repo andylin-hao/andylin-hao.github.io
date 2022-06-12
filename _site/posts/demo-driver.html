@@ -1,0 +1,675 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+
+<meta charset="utf-8">
+
+
+
+<!-- begin SEO -->
+
+
+
+
+
+
+
+
+
+<title>Write A Demo Android Kernel Driver - Hao Lin’s Home Page</title>
+
+
+
+
+
+
+
+<meta property="og:locale" content="en-US">
+<meta property="og:site_name" content="Hao Lin's Home Page">
+<meta property="og:title" content="Write A Demo Android Kernel Driver">
+
+
+  <link rel="canonical" href="http://127.0.0.1:4000/posts/demo-driver">
+  <meta property="og:url" content="http://127.0.0.1:4000/posts/demo-driver">
+
+
+
+  <meta property="og:description" content="This post will talk about how to write a small “hello-world” driver in Android kernel.">
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2020-10-07T06:57:45-07:00">
+
+
+
+
+
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context" : "http://schema.org",
+      "@type" : "Person",
+      "name" : "Hao Lin",
+      "url" : "http://127.0.0.1:4000",
+      "sameAs" : null
+    }
+  </script>
+
+
+
+
+
+
+<!-- end SEO -->
+
+
+<link href="http://127.0.0.1:4000/feed.xml" type="application/atom+xml" rel="alternate" title="Hao Lin's Home Page Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="http://127.0.0.1:4000/assets/css/main.css">
+
+<meta http-equiv="cleartype" content="on">
+    
+
+<!-- start custom head snippets -->
+
+<link rel="apple-touch-icon" sizes="57x57" href="http://127.0.0.1:4000/images/apple-touch-icon-57x57.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="60x60" href="http://127.0.0.1:4000/images/apple-touch-icon-60x60.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="72x72" href="http://127.0.0.1:4000/images/apple-touch-icon-72x72.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="76x76" href="http://127.0.0.1:4000/images/apple-touch-icon-76x76.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="114x114" href="http://127.0.0.1:4000/images/apple-touch-icon-114x114.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="120x120" href="http://127.0.0.1:4000/images/apple-touch-icon-120x120.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="144x144" href="http://127.0.0.1:4000/images/apple-touch-icon-144x144.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="152x152" href="http://127.0.0.1:4000/images/apple-touch-icon-152x152.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="180x180" href="http://127.0.0.1:4000/images/apple-touch-icon-180x180.png?v=M44lzPylqQ">
+<link rel="icon" type="image/png" href="http://127.0.0.1:4000/images/favicon-32x32.png?v=M44lzPylqQ" sizes="32x32">
+<link rel="icon" type="image/png" href="http://127.0.0.1:4000/images/android-chrome-192x192.png?v=M44lzPylqQ" sizes="192x192">
+<link rel="icon" type="image/png" href="http://127.0.0.1:4000/images/favicon-96x96.png?v=M44lzPylqQ" sizes="96x96">
+<link rel="icon" type="image/png" href="http://127.0.0.1:4000/images/favicon-16x16.png?v=M44lzPylqQ" sizes="16x16">
+<link rel="manifest" href="http://127.0.0.1:4000/images/manifest.json?v=M44lzPylqQ">
+<link rel="mask-icon" href="http://127.0.0.1:4000/images/safari-pinned-tab.svg?v=M44lzPylqQ" color="#000000">
+<link rel="shortcut icon" href="/images/favicon.ico?v=M44lzPylqQ">
+<meta name="msapplication-TileColor" content="#000000">
+<meta name="msapplication-TileImage" content="http://127.0.0.1:4000/images/mstile-144x144.png?v=M44lzPylqQ">
+<meta name="msapplication-config" content="http://127.0.0.1:4000/images/browserconfig.xml?v=M44lzPylqQ">
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="http://127.0.0.1:4000/assets/css/academicons.css"/>
+
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ TeX: { equationNumbers: { autoNumber: "all" } } }); </script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+<!-- end custom head snippets -->
+
+  </head>
+
+  <body>
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        <button><div class="navicon"></div></button>
+        <ul class="visible-links">
+          <li class="masthead__menu-item masthead__menu-item--lg"><a href="http://127.0.0.1:4000/">Hao Lin's Home Page</a></li>
+          
+            
+            <li class="masthead__menu-item"><a href="http://127.0.0.1:4000/publications/">Publications</a></li>
+          
+            
+            <li class="masthead__menu-item"><a href="http://127.0.0.1:4000/year-archive/">Tech Potpourri</a></li>
+          
+        </ul>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+    
+
+
+
+
+
+<div id="main" role="main">
+  
+
+
+  <div class="sidebar sticky">
+  
+
+
+
+<div itemscope itemtype="http://schema.org/Person">
+
+  <div class="author__avatar">
+    
+    	<img src="http://127.0.0.1:4000/images/profile.png" class="author__avatar" alt="Hao Lin">
+    
+  </div>
+
+  <div class="author__content">
+    <h3 class="author__name">Hao Lin</h3>
+    <p class="author__bio">A PhD student at Tsinghua University, who is interested in operating systems and system measurement.</p>
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li><i class="fa fa-fw fa-map-marker" aria-hidden="true"></i> Beijing, China</li>
+      
+      
+      
+      
+      
+       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        <li><a href="https://github.com/andylin-hao"><i class="fab fa-fw fa-github" aria-hidden="true"></i> Github</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        <li><a href="https://scholar.google.com/citations?user=xkOzOOYAAAAJ&hl=en"><i class="fas fa-fw fa-graduation-cap"></i> Google Scholar</a></li>
+      
+      
+      
+        <li><a href="https://orcid.org/0000-0002-9990-5090"><i class="ai ai-orcid-square ai-fw"></i> ORCID</a></li>
+      
+      
+      
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+  <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+    <meta itemprop="headline" content="Write A Demo Android Kernel Driver">
+    <meta itemprop="description" content="This post will talk about how to write a small “hello-world” driver in Android kernel.">
+    <meta itemprop="datePublished" content="October 07, 2020">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 class="page__title" itemprop="headline">Write A Demo Android Kernel Driver
+</h1>
+          
+            <p class="page__meta"><i class="fa fa-clock-o" aria-hidden="true"></i> 
+
+
+  
+	  2 minute read
+	
+</p>
+          
+        
+        
+        
+          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Published:</strong> <time datetime="2020-10-07T06:57:45-07:00">October 07, 2020</time></p>
+        
+        
+             
+        
+    
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        <p>This post will talk about how to write a small “hello-world” driver in Android kernel.</p>
+
+<h1 id="environment">Environment</h1>
+
+<ul>
+  <li>Android version: Android-x86 (q-x86, x86_64_userdebug)</li>
+  <li>QEMU: 5.1</li>
+  <li>Host: Ubuntu 20.04</li>
+</ul>
+
+<h1 id="a-demo-driver">A Demo Driver</h1>
+
+<ul>
+  <li>
+    <p>Create a new directory in ${android-source-root}/kernel/drivers named <code class="language-plaintext highlighter-rouge">hello</code></p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">cd ${android-source-root}/kernel/drivers/hello</code></p>
+  </li>
+  <li>
+    <p>Create a new C file named <code class="language-plaintext highlighter-rouge">hello.c</code>, with the following content:</p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#include &lt;linux/module.h&gt;  
+#include &lt;linux/kernel.h&gt;  
+#include &lt;linux/fs.h&gt;  
+#include &lt;linux/miscdevice.h&gt;  
+</span>  
+<span class="n">MODULE_LICENSE</span><span class="p">(</span><span class="s">"GPL"</span><span class="p">);</span>  
+<span class="n">MODULE_AUTHOR</span><span class="p">(</span><span class="s">"AndyLin"</span><span class="p">);</span>  
+<span class="n">MODULE_DESCRIPTION</span><span class="p">(</span><span class="s">"Hello Kernel Device"</span><span class="p">);</span>  
+<span class="n">MODULE_VERSION</span><span class="p">(</span><span class="s">"1.0"</span><span class="p">);</span>  
+  
+<span class="cp">#define CMD_COMMAND 0x1336  
+</span>  
+<span class="kt">long</span> <span class="nf">hello_ioctl</span><span class="p">(</span><span class="k">struct</span> <span class="n">file</span> <span class="o">*</span><span class="n">filp</span><span class="p">,</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">cmd</span><span class="p">,</span>  
+    <span class="kt">unsigned</span> <span class="kt">long</span> <span class="n">arg</span><span class="p">){</span>  
+    <span class="k">switch</span><span class="p">(</span><span class="n">cmd</span><span class="p">){</span>  
+    <span class="k">case</span> <span class="n">CMD_COMMAND</span><span class="p">:</span>  
+        <span class="n">printk</span><span class="p">(</span><span class="s">"Hello Module hello_ioctl() exced"</span><span class="p">);</span>  
+        <span class="k">break</span><span class="p">;</span>  
+    <span class="nl">default:</span>  
+        <span class="n">printk</span><span class="p">(</span><span class="s">"Hello Module unknown ioctl cmd"</span><span class="p">);</span>  
+    <span class="p">}</span>  
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>  
+<span class="p">}</span>  
+  
+<span class="k">struct</span> <span class="n">file_operations</span> <span class="n">hello_fops</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nl">unlocked_ioctl:</span> <span class="n">hello_ioctl</span>  
+<span class="p">};</span>  
+  
+<span class="k">static</span> <span class="k">struct</span> <span class="n">miscdevice</span> <span class="n">hello_device</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nl">minor:</span> <span class="n">MISC_DYNAMIC_MINOR</span><span class="p">,</span>  
+    <span class="nl">name:</span> <span class="s">"hello"</span><span class="p">,</span>  
+    <span class="nl">fops:</span> <span class="o">&amp;</span><span class="n">hello_fops</span><span class="p">,</span>  
+    <span class="nl">mode:</span> <span class="mi">777</span>
+<span class="p">};</span>  
+  
+<span class="k">static</span> <span class="kt">int</span> <span class="nf">hello_begin</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span>  
+    <span class="kt">int</span> <span class="n">ret</span><span class="p">;</span>  
+    <span class="n">ret</span> <span class="o">=</span> <span class="n">misc_register</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hello_device</span><span class="p">);</span>
+    <span class="k">if</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>  
+        <span class="n">printk</span><span class="p">(</span><span class="s">"Failed to register misc device"</span><span class="p">);</span>  
+    <span class="k">else</span>  
+        <span class="n">printk</span><span class="p">(</span><span class="s">"Hello Module successfully loaded"</span><span class="p">);</span>  
+  
+    <span class="k">return</span> <span class="n">ret</span><span class="p">;</span>  
+<span class="p">}</span>  
+  
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">hello_exit</span><span class="p">(</span><span class="kt">void</span><span class="p">){</span>  
+    <span class="n">misc_deregister</span><span class="p">(</span><span class="o">&amp;</span><span class="n">hello_device</span><span class="p">);</span>
+    <span class="n">printk</span><span class="p">(</span><span class="s">"Hello module exit"</span><span class="p">);</span> 
+    <span class="k">return</span><span class="p">;</span> 
+<span class="p">}</span>  
+  
+<span class="n">module_init</span><span class="p">(</span><span class="n">hello_begin</span><span class="p">);</span>
+<span class="n">module_exit</span><span class="p">(</span><span class="n">hello_exit</span><span class="p">);</span> 
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>In the <code class="language-plaintext highlighter-rouge">${android-source-root}</code>, run the following commands to build the kernel first:</p>
+
+    <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">source </span>build/envsetup.sh
+lunch android_x86_64-userdebug
+make kernel <span class="nt">-j</span><span class="k">${</span><span class="nv">thread_num</span><span class="k">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Create a <code class="language-plaintext highlighter-rouge">MakeFile</code> in the <code class="language-plaintext highlighter-rouge">hello</code> directory:</p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">obj</span><span class="o">-</span><span class="n">m</span> <span class="o">:=</span> <span class="n">hello</span><span class="p">.</span><span class="n">o</span>  
+  
+<span class="c1">// This is why we build kernel first -- in order to generate the kernel directory</span>
+<span class="n">KERNELDIR</span> <span class="o">:=</span> <span class="err">$</span><span class="p">{</span><span class="n">android</span><span class="o">-</span><span class="n">source</span><span class="o">-</span><span class="n">root</span><span class="p">}</span><span class="o">/</span><span class="n">out</span><span class="o">/</span><span class="n">target</span><span class="o">/</span><span class="n">product</span><span class="o">/</span><span class="n">x86_64</span><span class="o">/</span><span class="n">obj</span><span class="o">/</span><span class="n">kernel</span><span class="o">/</span>
+<span class="n">PWD</span> <span class="o">:=</span><span class="err">$</span><span class="p">(</span><span class="n">shell</span> <span class="n">pwd</span><span class="p">)</span>  
+<span class="n">ARCH</span><span class="o">=</span><span class="n">x86_64</span>
+<span class="n">CROSS_COMPILE</span><span class="o">=</span><span class="err">$</span><span class="p">{</span><span class="n">android</span><span class="o">-</span><span class="n">source</span><span class="o">-</span><span class="n">root</span><span class="p">}</span><span class="o">/</span><span class="n">prebuilts</span><span class="o">/</span><span class="n">gcc</span><span class="o">/</span><span class="n">linux</span><span class="o">-</span><span class="n">x86</span><span class="o">/</span><span class="n">x86</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">android</span><span class="o">-</span><span class="mi">4</span><span class="p">.</span><span class="mi">9</span><span class="o">/</span><span class="n">bin</span><span class="o">/</span><span class="n">x86_64</span><span class="o">-</span><span class="n">linux</span><span class="o">-</span><span class="n">android</span><span class="o">-</span>  
+<span class="n">CC</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">CROSS_COMPILE</span><span class="p">)</span><span class="n">gcc</span>  
+<span class="n">LD</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">CROSS_COMPILE</span><span class="p">)</span><span class="n">ld</span>  
+<span class="n">CFLAGS_MODULE</span><span class="o">=-</span><span class="n">fno</span><span class="o">-</span><span class="n">pic</span>  
+  
+<span class="n">all</span><span class="o">:</span>  
+	<span class="n">make</span> <span class="o">-</span><span class="n">C</span> <span class="err">$</span><span class="p">(</span><span class="n">KERNELDIR</span><span class="p">)</span> <span class="n">ARCH</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">ARCH</span><span class="p">)</span> <span class="n">CROSS_COMPILE</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">CROSS_COMPILE</span><span class="p">)</span> <span class="n">M</span><span class="o">=</span><span class="err">$</span><span class="p">(</span><span class="n">PWD</span><span class="p">)</span> <span class="n">modules</span>
+<span class="n">clean</span><span class="o">:</span>    
+	<span class="n">rm</span> <span class="o">*</span><span class="p">.</span><span class="n">o</span> <span class="o">*</span><span class="p">.</span><span class="n">ko</span> <span class="o">*</span><span class="p">.</span><span class="n">mod</span><span class="p">.</span><span class="n">c</span> <span class="o">*</span><span class="p">.</span><span class="n">order</span> <span class="o">*</span><span class="p">.</span><span class="n">symvers</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>Now we can finally <code class="language-plaintext highlighter-rouge">make</code></p>
+  </li>
+  <li>
+    <p>After <code class="language-plaintext highlighter-rouge">make</code>, you can see a <code class="language-plaintext highlighter-rouge">hello.ko</code> file in the directory</p>
+  </li>
+  <li>
+    <p>Now you can build your Android-x86 and run it atop QEMU (you might run into compilation errors due to dirty <code class="language-plaintext highlighter-rouge">kernel</code> directory caused by <code class="language-plaintext highlighter-rouge">make kernel</code>; if that happens, you can first run <code class="language-plaintext highlighter-rouge">make mrproper</code> in the <code class="language-plaintext highlighter-rouge">kernel</code> directory before building the entire system)</p>
+  </li>
+  <li>
+    <p>Connect to the system via <code class="language-plaintext highlighter-rouge">adb</code> (note that you should first turn on your WiFi in Android, and you can connect to it by running <code class="language-plaintext highlighter-rouge">adb connect localhost:4444</code>, if your QEMU booting command contains the following: <code class="language-plaintext highlighter-rouge">-net nic -net user,hostfwd=tcp::4444-:555</code></p>
+  </li>
+  <li>
+    <p>Use <code class="language-plaintext highlighter-rouge">adb</code> to push the <code class="language-plaintext highlighter-rouge">hello.ko</code> to Android’s any directory as you please</p>
+  </li>
+  <li>
+    <p>In <code class="language-plaintext highlighter-rouge">adb shell</code>, run <code class="language-plaintext highlighter-rouge">insmod ${path-to-the-hello.ko-file}</code></p>
+  </li>
+  <li>
+    <p>Now you are all done! You can use <code class="language-plaintext highlighter-rouge">dmesg | grep Hello</code> to check the output in the driver’s code</p>
+  </li>
+</ul>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+  
+
+
+
+
+  
+  
+  
+
+  <p class="page__taxonomy">
+    <strong><i class="fa fa-fw fa-tags" aria-hidden="true"></i> Tags: </strong>
+    <span itemprop="keywords">
+    
+      
+      
+      <a href="http://127.0.0.1:4000/tags/#android" class="page__taxonomy-item" rel="tag">Android</a><span class="sep">, </span>
+    
+      
+      
+      <a href="http://127.0.0.1:4000/tags/#driver" class="page__taxonomy-item" rel="tag">Driver</a><span class="sep">, </span>
+    
+      
+      
+      <a href="http://127.0.0.1:4000/tags/#kernel" class="page__taxonomy-item" rel="tag">Kernel</a>
+    
+    </span>
+  </p>
+
+
+
+
+      </footer>
+
+      
+
+<section class="page__share">
+  
+    <h4 class="page__share-title">Share on</h4>
+  
+
+  <a href="https://twitter.com/intent/tweet?text=http://127.0.0.1:4000/posts/demo-driver" class="btn btn--twitter" title="Share on Twitter"><i class="fab fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://127.0.0.1:4000/posts/demo-driver" class="btn btn--facebook" title="Share on Facebook"><i class="fab fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http://127.0.0.1:4000/posts/demo-driver" class="btn btn--linkedin" title="Share on LinkedIn"><i class="fab fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+      
+
+
+  <nav class="pagination">
+    
+      <a href="http://127.0.0.1:4000/posts/virtio-gpu" class="pagination--pager" title="VIRTIO-GPU Work Flow
+">Previous</a>
+    
+    
+      <a href="http://127.0.0.1:4000/posts/import-kernel" class="pagination--pager" title="Importing Linux Kernel Code to VS Code and Enjoying Code Navigation
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    <div class="page__related">
+      
+        <h4 class="page__related-title">You May Also Enjoy</h4>
+      
+      <div class="grid__wrapper">
+        
+          
+
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="http://schema.org/CreativeWork">
+    
+
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="http://127.0.0.1:4000/posts/linux-graphics-stack" rel="permalink">Linux Graphics Stack
+</a>
+      
+    </h2>
+    
+    
+      <p class="page__meta"><i class="fa fa-clock-o" aria-hidden="true"></i> 
+
+
+  
+	  4 minute read
+	
+</p>
+    
+
+        
+         <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Published:</strong> <time datetime="2021-04-25T10:00:55-07:00">April 25, 2021</time></p>
+        
+
+    
+    <p class="archive__item-excerpt" itemprop="description"><p>Due to heavy historical burden, the Linux graphics stack is extremely complex with fragmented and intricate software components. As a result, it’s quite exhausting to fully grasp its core idea and principles. This has posed significant challenges to my recent work on graphics virtualization of Android. Fortunately, after days of struggling with its sources and prior technical posts, I may have obtained some levels of understandings regarding the framework of the Linux graphics stack. SO, before I completely lose track of the story and to benefit other unfortunate comrades, I decide to document everything here in this post.</p>
+
+</p>
+    
+    
+    
+
+  </article>
+</div>
+
+        
+          
+
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="http://schema.org/CreativeWork">
+    
+
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="http://127.0.0.1:4000/posts/import-kernel" rel="permalink">Importing Linux Kernel Code to VS Code and Enjoying Code Navigation
+</a>
+      
+    </h2>
+    
+    
+      <p class="page__meta"><i class="fa fa-clock-o" aria-hidden="true"></i> 
+
+
+  
+	  1 minute read
+	
+</p>
+    
+
+        
+         <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Published:</strong> <time datetime="2020-10-16T00:00:00-07:00">October 16, 2020</time></p>
+        
+
+    
+    <p class="archive__item-excerpt" itemprop="description"><p>In this post I’ll take you to import kernel code to VS Code for a nice code viewing and developing experience. You can say goodbye to CLion which eats your memory without mercy. This tutorial will be based on the Android-x86 source tree which contains Linux kernel almost identical to the upstream kernel.</p>
+
+</p>
+    
+    
+    
+
+  </article>
+</div>
+
+        
+          
+
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="http://schema.org/CreativeWork">
+    
+
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="http://127.0.0.1:4000/posts/virtio-gpu" rel="permalink">VIRTIO-GPU Work Flow
+</a>
+      
+    </h2>
+    
+    
+      <p class="page__meta"><i class="fa fa-clock-o" aria-hidden="true"></i> 
+
+
+  
+	  1 minute read
+	
+</p>
+    
+
+        
+         <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Published:</strong> <time datetime="2020-07-15T10:51:04-07:00">July 15, 2020</time></p>
+        
+
+    
+    <p class="archive__item-excerpt" itemprop="description"><p>virtio-gpu属于virtio系列I/O虚拟化方案，采用类虚拟化设计，Guest端需要内置virtio驱动（&gt;Linux 4.4均已配置，Android x86源码<code class="language-plaintext highlighter-rouge">kernel/drivers/virtio</code>中可查看）。virtio驱动的基本结构为前后端设计，前端为Guest OS驱动，后端为模拟器端逻辑，前后端通过virtqueue队列（由环形缓冲区vring实现）进行数据交换。</p>
+
+</p>
+    
+    
+    
+
+  </article>
+</div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+    <div class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+<a href="/sitemap/">Sitemap</a>
+<!-- end custom footer snippets -->
+
+        
+
+<div class="page__footer-follow">
+  <ul class="social-icons">
+    
+      <li><strong>Follow:</strong></li>
+    
+    
+    
+    
+      <li><a href="http://github.com/andylin-hao"><i class="fab fa-github" aria-hidden="true"></i> GitHub</a></li>
+    
+    
+    <li><a href="http://127.0.0.1:4000/feed.xml"><i class="fa fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+  </ul>
+</div>
+
+<div class="page__footer-copyright">&copy; 2022 Hao Lin. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://github.com/academicpages/academicpages.github.io">AcademicPages</a>, a fork of <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    <script src="http://127.0.0.1:4000/assets/js/main.min.js"></script>
+
+
+
+
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', '', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+  </body>
+</html>
+

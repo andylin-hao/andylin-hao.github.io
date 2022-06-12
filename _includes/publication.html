@@ -1,0 +1,22 @@
+<span style="font-size: 13.5pt;">
+  <b style="color: #083b89;">{{post.venue}}</b>
+  <a href="{{site.url}}/pdf/{{post.pdf}}"><strong>{{post.title}}</strong></a> {% if post.award %}
+  <b style="color: #C40233;"><i>(Awarded {{post.award}})</i></b>
+  {% endif %}
+  <br><i style="font-size: 11.5pt;">{{post.authors}}</i><br>
+  <div style="font-size: 12pt;">
+    {% if post.repo %}
+    <a href="{{post.repo}}" target="_blank">Code/data</a>
+    {% endif %}
+    {% if post.slide %}
+    <a href="{{site.url}}/slide/{{post.slide}}" target="_blank">Slide</a>
+    {% endif %}
+    {% if post.poster %}
+    <a href="{{site.url}}/poster/{{post.poster}}" target="_blank">Poster</a>
+    {% endif %}
+    {% if post.talk %}
+    <a href="{{post.talk}}" target="_blank">Talk</a>
+    {% endif %}
+  </div>
+</span>
+<br>

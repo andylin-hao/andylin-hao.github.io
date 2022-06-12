@@ -1,0 +1,731 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+
+<meta charset="utf-8">
+
+
+
+<!-- begin SEO -->
+
+
+
+
+
+
+
+
+
+<title>VIRTIO-GPU Work Flow - Hao Lin’s Home Page</title>
+
+
+
+
+
+
+
+<meta property="og:locale" content="en-US">
+<meta property="og:site_name" content="Hao Lin's Home Page">
+<meta property="og:title" content="VIRTIO-GPU Work Flow">
+
+
+  <link rel="canonical" href="http://127.0.0.1:4000/posts/virtio-gpu">
+  <meta property="og:url" content="http://127.0.0.1:4000/posts/virtio-gpu">
+
+
+
+  <meta property="og:description" content="virtio-gpu属于virtio系列I/O虚拟化方案，采用类虚拟化设计，Guest端需要内置virtio驱动（&gt;Linux 4.4均已配置，Android x86源码kernel/drivers/virtio中可查看）。virtio驱动的基本结构为前后端设计，前端为Guest OS驱动，后端为模拟器端逻辑，前后端通过virtqueue队列（由环形缓冲区vring实现）进行数据交换。">
+
+
+
+
+
+  
+
+  
+
+
+
+
+
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2020-07-15T10:51:04-07:00">
+
+
+
+
+
+
+
+
+  <script type="application/ld+json">
+    {
+      "@context" : "http://schema.org",
+      "@type" : "Person",
+      "name" : "Hao Lin",
+      "url" : "http://127.0.0.1:4000",
+      "sameAs" : null
+    }
+  </script>
+
+
+
+
+
+
+<!-- end SEO -->
+
+
+<link href="http://127.0.0.1:4000/feed.xml" type="application/atom+xml" rel="alternate" title="Hao Lin's Home Page Feed">
+
+<!-- http://t.co/dKP3o1e -->
+<meta name="HandheldFriendly" content="True">
+<meta name="MobileOptimized" content="320">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script>
+  document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/g, '') + ' js ';
+</script>
+
+<!-- For all browsers -->
+<link rel="stylesheet" href="http://127.0.0.1:4000/assets/css/main.css">
+
+<meta http-equiv="cleartype" content="on">
+    
+
+<!-- start custom head snippets -->
+
+<link rel="apple-touch-icon" sizes="57x57" href="http://127.0.0.1:4000/images/apple-touch-icon-57x57.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="60x60" href="http://127.0.0.1:4000/images/apple-touch-icon-60x60.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="72x72" href="http://127.0.0.1:4000/images/apple-touch-icon-72x72.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="76x76" href="http://127.0.0.1:4000/images/apple-touch-icon-76x76.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="114x114" href="http://127.0.0.1:4000/images/apple-touch-icon-114x114.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="120x120" href="http://127.0.0.1:4000/images/apple-touch-icon-120x120.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="144x144" href="http://127.0.0.1:4000/images/apple-touch-icon-144x144.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="152x152" href="http://127.0.0.1:4000/images/apple-touch-icon-152x152.png?v=M44lzPylqQ">
+<link rel="apple-touch-icon" sizes="180x180" href="http://127.0.0.1:4000/images/apple-touch-icon-180x180.png?v=M44lzPylqQ">
+<link rel="icon" type="image/png" href="http://127.0.0.1:4000/images/favicon-32x32.png?v=M44lzPylqQ" sizes="32x32">
+<link rel="icon" type="image/png" href="http://127.0.0.1:4000/images/android-chrome-192x192.png?v=M44lzPylqQ" sizes="192x192">
+<link rel="icon" type="image/png" href="http://127.0.0.1:4000/images/favicon-96x96.png?v=M44lzPylqQ" sizes="96x96">
+<link rel="icon" type="image/png" href="http://127.0.0.1:4000/images/favicon-16x16.png?v=M44lzPylqQ" sizes="16x16">
+<link rel="manifest" href="http://127.0.0.1:4000/images/manifest.json?v=M44lzPylqQ">
+<link rel="mask-icon" href="http://127.0.0.1:4000/images/safari-pinned-tab.svg?v=M44lzPylqQ" color="#000000">
+<link rel="shortcut icon" href="/images/favicon.ico?v=M44lzPylqQ">
+<meta name="msapplication-TileColor" content="#000000">
+<meta name="msapplication-TileImage" content="http://127.0.0.1:4000/images/mstile-144x144.png?v=M44lzPylqQ">
+<meta name="msapplication-config" content="http://127.0.0.1:4000/images/browserconfig.xml?v=M44lzPylqQ">
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="http://127.0.0.1:4000/assets/css/academicons.css"/>
+
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ TeX: { equationNumbers: { autoNumber: "all" } } }); </script>
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+<!-- end custom head snippets -->
+
+  </head>
+
+  <body>
+
+    <!--[if lt IE 9]>
+<div class="notice--danger align-center" style="margin: 0;">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</div>
+<![endif]-->
+    
+
+<div class="masthead">
+  <div class="masthead__inner-wrap">
+    <div class="masthead__menu">
+      <nav id="site-nav" class="greedy-nav">
+        <button><div class="navicon"></div></button>
+        <ul class="visible-links">
+          <li class="masthead__menu-item masthead__menu-item--lg"><a href="http://127.0.0.1:4000/">Hao Lin's Home Page</a></li>
+          
+            
+            <li class="masthead__menu-item"><a href="http://127.0.0.1:4000/publications/">Publications</a></li>
+          
+            
+            <li class="masthead__menu-item"><a href="http://127.0.0.1:4000/year-archive/">Tech Potpourri</a></li>
+          
+        </ul>
+        <ul class="hidden-links hidden"></ul>
+      </nav>
+    </div>
+  </div>
+</div>
+
+    
+
+
+
+
+
+<div id="main" role="main">
+  
+
+
+  <div class="sidebar sticky">
+  
+
+
+
+<div itemscope itemtype="http://schema.org/Person">
+
+  <div class="author__avatar">
+    
+    	<img src="http://127.0.0.1:4000/images/profile.png" class="author__avatar" alt="Hao Lin">
+    
+  </div>
+
+  <div class="author__content">
+    <h3 class="author__name">Hao Lin</h3>
+    <p class="author__bio">A PhD student at Tsinghua University, who is interested in operating systems and system measurement.</p>
+  </div>
+
+  <div class="author__urls-wrapper">
+    <button class="btn btn--inverse">Follow</button>
+    <ul class="author__urls social-icons">
+      
+        <li><i class="fa fa-fw fa-map-marker" aria-hidden="true"></i> Beijing, China</li>
+      
+      
+      
+      
+      
+       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        <li><a href="https://github.com/andylin-hao"><i class="fab fa-fw fa-github" aria-hidden="true"></i> Github</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+        <li><a href="https://scholar.google.com/citations?user=xkOzOOYAAAAJ&hl=en"><i class="fas fa-fw fa-graduation-cap"></i> Google Scholar</a></li>
+      
+      
+      
+        <li><a href="https://orcid.org/0000-0002-9990-5090"><i class="ai ai-orcid-square ai-fw"></i> ORCID</a></li>
+      
+      
+      
+    </ul>
+  </div>
+</div>
+
+  
+  </div>
+
+
+  <article class="page" itemscope itemtype="http://schema.org/CreativeWork">
+    <meta itemprop="headline" content="VIRTIO-GPU Work Flow">
+    <meta itemprop="description" content="virtio-gpu属于virtio系列I/O虚拟化方案，采用类虚拟化设计，Guest端需要内置virtio驱动（&gt;Linux 4.4均已配置，Android x86源码kernel/drivers/virtio中可查看）。virtio驱动的基本结构为前后端设计，前端为Guest OS驱动，后端为模拟器端逻辑，前后端通过virtqueue队列（由环形缓冲区vring实现）进行数据交换。">
+    <meta itemprop="datePublished" content="July 15, 2020">
+    
+
+    <div class="page__inner-wrap">
+      
+        <header>
+          <h1 class="page__title" itemprop="headline">VIRTIO-GPU Work Flow
+</h1>
+          
+            <p class="page__meta"><i class="fa fa-clock-o" aria-hidden="true"></i> 
+
+
+  
+	  1 minute read
+	
+</p>
+          
+        
+        
+        
+          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Published:</strong> <time datetime="2020-07-15T10:51:04-07:00">July 15, 2020</time></p>
+        
+        
+             
+        
+    
+        </header>
+      
+
+      <section class="page__content" itemprop="text">
+        <p>virtio-gpu属于virtio系列I/O虚拟化方案，采用类虚拟化设计，Guest端需要内置virtio驱动（&gt;Linux 4.4均已配置，Android x86源码<code class="language-plaintext highlighter-rouge">kernel/drivers/virtio</code>中可查看）。virtio驱动的基本结构为前后端设计，前端为Guest OS驱动，后端为模拟器端逻辑，前后端通过virtqueue队列（由环形缓冲区vring实现）进行数据交换。</p>
+
+<p><img src="http://127.0.0.1:4000/images/posts/virtio.gif" /></p>
+
+<h3 id="guest端">Guest端</h3>
+
+<ul>
+  <li>
+    <p>操作系统启动时遍历PCI总线树，virtio-gpu作为一个PCI设备被OS检测到并注册</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">virtio_pci_common.c</code>中的<code class="language-plaintext highlighter-rouge">virtio_pci_probe</code>函数会根据PCI设备号创建<code class="language-plaintext highlighter-rouge">virtio_pci_device</code>，并将其添加到<code class="language-plaintext highlighter-rouge">virtio_bus</code></p>
+  </li>
+  <li>
+    <p>在<code class="language-plaintext highlighter-rouge">/sys/bus/virtio/drivers</code>中可以看到<code class="language-plaintext highlighter-rouge">virtio-gpu</code>设备</p>
+  </li>
+  <li>
+    <p>运行一个OpenGL应用，此时该应用会调用OpenGL库进行图形绘制</p>
+  </li>
+  <li>
+    <p>OpenGL指令会送至内核中的DRM（Direct Rendering Management）图形驱动，DRM驱动向GPU下达相应的图形指令（着色、光栅化、贴图什么的），具体的OpenGL-&gt;DRM-&gt;GPU流程看这里https://www.cnblogs.com/shoemaker/p/linux_graphics01.html</p>
+  </li>
+  <li>
+    <p>Guest端的virtio-gpu设备截获DRM的相关指令，然后转换分解为自己定义的一套指令（具体指令类型见后）</p>
+  </li>
+  <li>
+    <p>将指令放到virtqueue中，然后告知QEMU：</p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">virtqueue_notify</span>
+    <span class="n">vq</span><span class="o">-&gt;</span><span class="n">notify</span><span class="p">(</span><span class="n">_vq</span><span class="p">)</span> <span class="o">&lt;--</span> <span class="n">vp_notify</span>
+    <span class="n">iowrite16</span><span class="p">(</span><span class="n">vq</span><span class="o">-&gt;</span><span class="n">index</span><span class="p">,</span> <span class="n">vp_dev</span><span class="o">-&gt;</span><span class="n">ioaddr</span> <span class="o">+</span> <span class="n">VIRTIO_PCI_QUEUE_NOTIFY</span><span class="p">)</span>
+</code></pre></div>    </div>
+
+    <p>方法是Guest写I/O寄存器，触发VM Exit进入到KVM中处理，进入到Host端流程</p>
+  </li>
+</ul>
+
+<h3 id="host端">Host端</h3>
+
+<ul>
+  <li>
+    <p>KVM无法处理而退出，处理退出原因发现是<code class="language-plaintext highlighter-rouge">KVM_EXIT_IO</code>，进而调用相应的Handle函数</p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">int</span> <span class="nf">kvm_cpu_exec</span><span class="p">(</span><span class="n">CPUArchState</span> <span class="o">*</span><span class="n">env</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">do</span> <span class="p">{</span>
+        <span class="n">run_ret</span> <span class="o">=</span> <span class="n">kvm_vcpu_ioctl</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">KVM_RUN</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="n">run</span><span class="o">-&gt;</span><span class="n">exit_reason</span><span class="p">)</span> <span class="p">{</span> <span class="cm">/* 处理退出原因 */</span>
+        <span class="k">case</span> <span class="n">KVM_EXIT_IO</span><span class="p">:</span>
+            <span class="n">kvm_handle_io</span><span class="p">();</span>
+            <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">kvm_handle_io</code>通过<code class="language-plaintext highlighter-rouge">write eventfd</code>将等待<code class="language-plaintext highlighter-rouge">poll</code>的QEMU主线程唤醒，然后一步步走到virtio-gpu的I/O handlers。其中与virtio-gpu有关的virtqueue有两个：<code class="language-plaintext highlighter-rouge">ctrl_vq</code>负责交换图形命令，<code class="language-plaintext highlighter-rouge">cursor_vq</code>负责交换光标信息；</p>
+
+    <p>从而相应也有两个handlers：<code class="language-plaintext highlighter-rouge">virtio_gpu_handle_ctrl</code>和<code class="language-plaintext highlighter-rouge">virtio_gpu_handle_cursor</code>，两个函数在<code class="language-plaintext highlighter-rouge">hw/display/virtio-gpu.c</code>；</p>
+
+    <p>handler的注册在GCC编译时设定为在main函数前执行，位于<code class="language-plaintext highlighter-rouge">virtio_gpu_device_realize</code>函数中，具体见QOM编程模型https://blog.csdn.net/u011364612/article/details/53581411和相关的GCC trickhttps://blog.csdn.net/u011364612/article/details/53581501</p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">main</span>  <span class="n">main_loop</span> <span class="n">main_loop_wait</span>
+    <span class="n">os_host_main_loop_wait</span>
+        <span class="n">glib_pollfds_poll</span>
+            <span class="n">g_main_context_dispatch</span> 
+                <span class="n">aio_ctx_dispatch</span>    <span class="n">aio_dispatch</span>
+                    <span class="n">virtio_queue_host_notifier_read</span>
+                        <span class="n">virtio_queue_notify_vq</span> 
+                            <span class="n">virtio_gpu_handle_ctrl</span> <span class="n">virtio_gpu_handle_cursor</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>以<code class="language-plaintext highlighter-rouge">virtio_gpu_handle_ctrl</code>继续向下，到<code class="language-plaintext highlighter-rouge">virtio_gpu_handle_ctrl</code>，其首先从virtqueue中取出Guest端传来的命令，然后进行处理</p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="nf">virtio_gpu_process_cmdq</span><span class="p">(</span><span class="n">VirtIOGPU</span> <span class="o">*</span><span class="n">g</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="k">struct</span> <span class="n">virtio_gpu_ctrl_command</span> <span class="o">*</span><span class="n">cmd</span><span class="p">;</span>
+  
+    <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="n">QTAILQ_EMPTY</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">cmdq</span><span class="p">))</span> <span class="p">{</span>
+        <span class="cm">/* 取命令 */</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="n">QTAILQ_FIRST</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">cmdq</span><span class="p">);</span>
+          
+        <span class="p">...</span>
+  
+        <span class="cm">/* 处理命令 */</span>
+        <span class="n">VIRGL</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">virtio_gpu_virgl_process_cmd</span><span class="p">,</span> <span class="n">virtio_gpu_simple_process_cmd</span><span class="p">,</span>
+              <span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="n">QTAILQ_REMOVE</span><span class="p">(</span><span class="o">&amp;</span><span class="n">g</span><span class="o">-&gt;</span><span class="n">cmdq</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">next</span><span class="p">);</span>
+        <span class="p">...</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>    </div>
+
+    <p><code class="language-plaintext highlighter-rouge">virtio_gpu_ctrl_command</code>为Guest端解析DRM驱动指令重新构成的virtio命令格式</p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">struct</span> <span class="n">virtio_gpu_ctrl_command</span> <span class="p">{</span>
+    <span class="n">VirtQueueElement</span> <span class="n">elem</span><span class="p">;</span>                       <span class="c1">// 取出的命令被映射到这里</span>
+    <span class="n">VirtQueue</span> <span class="o">*</span><span class="n">vq</span><span class="p">;</span>                               <span class="c1">// Host/Guest共享的队列</span>
+    <span class="k">struct</span> <span class="n">virtio_gpu_ctrl_hdr</span> <span class="n">cmd_hdr</span><span class="p">;</span>          <span class="c1">// 命令指定的header，指定了命令类型</span>
+    <span class="kt">uint32_t</span> <span class="n">error</span><span class="p">;</span>
+    <span class="n">bool</span> <span class="n">finished</span><span class="p">;</span>
+    <span class="n">QTAILQ_ENTRY</span><span class="p">(</span><span class="n">virtio_gpu_ctrl_command</span><span class="p">)</span> <span class="n">next</span><span class="p">;</span>
+<span class="p">};</span>
+</code></pre></div>    </div>
+  </li>
+  <li>
+    <p>处理命令的<code class="language-plaintext highlighter-rouge">VIRGL</code>宏如下，这里用了<code class="language-plaintext highlighter-rouge">libvirglrenderer</code></p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">#ifdef CONFIG_VIRGL
+#include &lt;virglrenderer.h&gt;
+#define VIRGL(_g, _virgl, _simple, ...)                     \
+    do {                                                    \
+        if (_g-&gt;parent_obj.use_virgl_renderer) {            \
+            _virgl(__VA_ARGS__);                            \
+        } else {                                            \
+            _simple(__VA_ARGS__);                           \
+        }                                                   \
+    } while (0)
+#else
+#define VIRGL(_g, _virgl, _simple, ...)                 \
+    do {                                                \
+        _simple(__VA_ARGS__);                           \
+    } while (0)
+#endif
+</span></code></pre></div>    </div>
+
+    <p>有<code class="language-plaintext highlighter-rouge">virgl</code>支持则能进行3D加速，否则只能进行2D加速，在Windows上目前直接使用<code class="language-plaintext highlighter-rouge">virtio-vga</code>会黑屏可能是已经没有所谓的2D加速这种东西了吧</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">_simple</code>对应<code class="language-plaintext highlighter-rouge">virtio_gpu_simple_process_cmd</code>，3D加速对应的函数差不多</p>
+
+    <div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kt">void</span> <span class="nf">virtio_gpu_simple_process_cmd</span><span class="p">(</span><span class="n">VirtIOGPU</span> <span class="o">*</span><span class="n">g</span><span class="p">,</span>
+                                          <span class="k">struct</span> <span class="n">virtio_gpu_ctrl_command</span> <span class="o">*</span><span class="n">cmd</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">VIRTIO_GPU_FILL_CMD</span><span class="p">(</span><span class="n">cmd</span><span class="o">-&gt;</span><span class="n">cmd_hdr</span><span class="p">);</span>
+    <span class="n">virtio_gpu_ctrl_hdr_bswap</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cmd</span><span class="o">-&gt;</span><span class="n">cmd_hdr</span><span class="p">);</span>
+  
+    <span class="k">switch</span> <span class="p">(</span><span class="n">cmd</span><span class="o">-&gt;</span><span class="n">cmd_hdr</span><span class="p">.</span><span class="n">type</span><span class="p">)</span> <span class="p">{</span> <span class="c1">//type就是命令类型</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_GET_DISPLAY_INFO</span><span class="p">:</span>
+        <span class="n">virtio_gpu_get_display_info</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_GET_EDID</span><span class="p">:</span>
+        <span class="n">virtio_gpu_get_edid</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_RESOURCE_CREATE_2D</span><span class="p">:</span>          <span class="c1">// 创建2D资源，仅有长宽和格式，没有像素信息，像素信息单独传</span>
+        <span class="n">virtio_gpu_resource_create_2d</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_RESOURCE_UNREF</span><span class="p">:</span>
+        <span class="n">virtio_gpu_resource_unref</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_RESOURCE_FLUSH</span><span class="p">:</span>             <span class="c1">// 将处理好的图形送到显示器</span>
+        <span class="n">virtio_gpu_resource_flush</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_TRANSFER_TO_HOST_2D</span><span class="p">:</span>        <span class="c1">// 交给Host的pixman库进行图形处理，比如明暗、光栅化处理</span>
+        <span class="n">virtio_gpu_transfer_to_host_2d</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_SET_SCANOUT</span><span class="p">:</span>
+        <span class="n">virtio_gpu_set_scanout</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_RESOURCE_ATTACH_BACKING</span><span class="p">:</span>    <span class="c1">// 获取像素信息并和2D资源绑定</span>
+        <span class="n">virtio_gpu_resource_attach_backing</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="k">case</span> <span class="n">VIRTIO_GPU_CMD_RESOURCE_DETACH_BACKING</span><span class="p">:</span>
+        <span class="n">virtio_gpu_resource_detach_backing</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">);</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="nl">default:</span>
+        <span class="n">cmd</span><span class="o">-&gt;</span><span class="n">error</span> <span class="o">=</span> <span class="n">VIRTIO_GPU_RESP_ERR_UNSPEC</span><span class="p">;</span>
+        <span class="k">break</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">cmd</span><span class="o">-&gt;</span><span class="n">finished</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">virtio_gpu_ctrl_response_nodata</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">cmd</span><span class="o">-&gt;</span><span class="n">error</span> <span class="o">?</span> <span class="n">cmd</span><span class="o">-&gt;</span><span class="n">error</span> <span class="o">:</span>
+                                        <span class="n">VIRTIO_GPU_RESP_OK_NODATA</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>    </div>
+
+    <p>具体的各流程和结构体解释见https://blog.csdn.net/huang987246510/article/details/106254294/</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">pixman</code>库处理完后由<code class="language-plaintext highlighter-rouge">dpy_gfx_update</code>刷新显示器</p>
+  </li>
+</ul>
+
+        
+      </section>
+
+      <footer class="page__meta">
+        
+        
+
+
+  
+
+
+
+
+  
+  
+  
+
+  <p class="page__taxonomy">
+    <strong><i class="fa fa-fw fa-tags" aria-hidden="true"></i> Tags: </strong>
+    <span itemprop="keywords">
+    
+      
+      
+      <a href="http://127.0.0.1:4000/tags/#emulator" class="page__taxonomy-item" rel="tag">Emulator</a><span class="sep">, </span>
+    
+      
+      
+      <a href="http://127.0.0.1:4000/tags/#gpu" class="page__taxonomy-item" rel="tag">GPU</a><span class="sep">, </span>
+    
+      
+      
+      <a href="http://127.0.0.1:4000/tags/#qemu" class="page__taxonomy-item" rel="tag">QEMU</a><span class="sep">, </span>
+    
+      
+      
+      <a href="http://127.0.0.1:4000/tags/#virtio" class="page__taxonomy-item" rel="tag">VIRTIO</a>
+    
+    </span>
+  </p>
+
+
+
+
+      </footer>
+
+      
+
+<section class="page__share">
+  
+    <h4 class="page__share-title">Share on</h4>
+  
+
+  <a href="https://twitter.com/intent/tweet?text=http://127.0.0.1:4000/posts/virtio-gpu" class="btn btn--twitter" title="Share on Twitter"><i class="fab fa-twitter" aria-hidden="true"></i><span> Twitter</span></a>
+
+  <a href="https://www.facebook.com/sharer/sharer.php?u=http://127.0.0.1:4000/posts/virtio-gpu" class="btn btn--facebook" title="Share on Facebook"><i class="fab fa-facebook" aria-hidden="true"></i><span> Facebook</span></a>
+
+  <a href="https://www.linkedin.com/shareArticle?mini=true&url=http://127.0.0.1:4000/posts/virtio-gpu" class="btn btn--linkedin" title="Share on LinkedIn"><i class="fab fa-linkedin" aria-hidden="true"></i><span> LinkedIn</span></a>
+</section>
+
+      
+
+
+  <nav class="pagination">
+    
+      <a href="#" class="pagination--pager disabled">Previous</a>
+    
+    
+      <a href="http://127.0.0.1:4000/posts/demo-driver" class="pagination--pager" title="Write A Demo Android Kernel Driver
+">Next</a>
+    
+  </nav>
+
+    </div>
+
+    
+  </article>
+
+  
+  
+    <div class="page__related">
+      
+        <h4 class="page__related-title">You May Also Enjoy</h4>
+      
+      <div class="grid__wrapper">
+        
+          
+
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="http://schema.org/CreativeWork">
+    
+
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="http://127.0.0.1:4000/posts/linux-graphics-stack" rel="permalink">Linux Graphics Stack
+</a>
+      
+    </h2>
+    
+    
+      <p class="page__meta"><i class="fa fa-clock-o" aria-hidden="true"></i> 
+
+
+  
+	  4 minute read
+	
+</p>
+    
+
+        
+         <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Published:</strong> <time datetime="2021-04-25T10:00:55-07:00">April 25, 2021</time></p>
+        
+
+    
+    <p class="archive__item-excerpt" itemprop="description"><p>Due to heavy historical burden, the Linux graphics stack is extremely complex with fragmented and intricate software components. As a result, it’s quite exhausting to fully grasp its core idea and principles. This has posed significant challenges to my recent work on graphics virtualization of Android. Fortunately, after days of struggling with its sources and prior technical posts, I may have obtained some levels of understandings regarding the framework of the Linux graphics stack. SO, before I completely lose track of the story and to benefit other unfortunate comrades, I decide to document everything here in this post.</p>
+
+</p>
+    
+    
+    
+
+  </article>
+</div>
+
+        
+          
+
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="http://schema.org/CreativeWork">
+    
+
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="http://127.0.0.1:4000/posts/import-kernel" rel="permalink">Importing Linux Kernel Code to VS Code and Enjoying Code Navigation
+</a>
+      
+    </h2>
+    
+    
+      <p class="page__meta"><i class="fa fa-clock-o" aria-hidden="true"></i> 
+
+
+  
+	  1 minute read
+	
+</p>
+    
+
+        
+         <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Published:</strong> <time datetime="2020-10-16T00:00:00-07:00">October 16, 2020</time></p>
+        
+
+    
+    <p class="archive__item-excerpt" itemprop="description"><p>In this post I’ll take you to import kernel code to VS Code for a nice code viewing and developing experience. You can say goodbye to CLion which eats your memory without mercy. This tutorial will be based on the Android-x86 source tree which contains Linux kernel almost identical to the upstream kernel.</p>
+
+</p>
+    
+    
+    
+
+  </article>
+</div>
+
+        
+          
+
+
+
+
+
+<div class="grid__item">
+  <article class="archive__item" itemscope itemtype="http://schema.org/CreativeWork">
+    
+
+    <h2 class="archive__item-title" itemprop="headline">
+      
+        <a href="http://127.0.0.1:4000/posts/demo-driver" rel="permalink">Write A Demo Android Kernel Driver
+</a>
+      
+    </h2>
+    
+    
+      <p class="page__meta"><i class="fa fa-clock-o" aria-hidden="true"></i> 
+
+
+  
+	  2 minute read
+	
+</p>
+    
+
+        
+         <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> Published:</strong> <time datetime="2020-10-07T06:57:45-07:00">October 07, 2020</time></p>
+        
+
+    
+    <p class="archive__item-excerpt" itemprop="description"><p>This post will talk about how to write a small “hello-world” driver in Android kernel.</p>
+
+</p>
+    
+    
+    
+
+  </article>
+</div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+    <div class="page__footer">
+      <footer>
+        <!-- start custom footer snippets -->
+<a href="/sitemap/">Sitemap</a>
+<!-- end custom footer snippets -->
+
+        
+
+<div class="page__footer-follow">
+  <ul class="social-icons">
+    
+      <li><strong>Follow:</strong></li>
+    
+    
+    
+    
+      <li><a href="http://github.com/andylin-hao"><i class="fab fa-github" aria-hidden="true"></i> GitHub</a></li>
+    
+    
+    <li><a href="http://127.0.0.1:4000/feed.xml"><i class="fa fa-fw fa-rss-square" aria-hidden="true"></i> Feed</a></li>
+  </ul>
+</div>
+
+<div class="page__footer-copyright">&copy; 2022 Hao Lin. Powered by <a href="http://jekyllrb.com" rel="nofollow">Jekyll</a> &amp; <a href="https://github.com/academicpages/academicpages.github.io">AcademicPages</a>, a fork of <a href="https://mademistakes.com/work/minimal-mistakes-jekyll-theme/" rel="nofollow">Minimal Mistakes</a>.</div>
+
+      </footer>
+    </div>
+
+    <script src="http://127.0.0.1:4000/assets/js/main.min.js"></script>
+
+
+
+
+  <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', '', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+
+
+
+
+  </body>
+</html>
+

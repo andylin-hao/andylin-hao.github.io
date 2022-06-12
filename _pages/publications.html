@@ -1,0 +1,23 @@
+---
+layout: archive
+title: "Publications"
+permalink: /publications/
+author_profile: true
+---
+
+{% include base_path %}
+
+<h2>Conference</h2>
+
+{% for post in site.publications reversed %}
+  {% if post.type == "conf" %}
+  {% include publication.html %}
+  {% endif%}
+{% endfor %}
+
+<h2>Journal</h2>
+{% for post in site.publications reversed %}
+  {% if post.type == "trans" %}
+  {% include publication.html %}
+  {% endif%}
+{% endfor %}
