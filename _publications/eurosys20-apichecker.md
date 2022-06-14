@@ -7,7 +7,7 @@ venue: "EuroSys'20"
 type: 'conf'
 selected: 'false'
 pdf: 'eurosys20-apichecker.pdf'
-authors: 'Liangyi Gong, Zhenhua Li, Feng Qian, Zifan Zhang, Qi Alfred Chen4, Zhiyun Qian, Hao Lin, Yunhao Liu'
+authors: 'Liangyi Gong, Zhenhua Li, Feng Qian, Zifan Zhang, Qi Alfred Chen, Zhiyun Qian, Hao Lin, Yunhao Liu'
 repo: https://apichecker.github.io/
 slide: 'eurosys20-apichecker-slide.pdf'
 talk: https://www.youtube.com/watch?v=wik2cbzGfVU
