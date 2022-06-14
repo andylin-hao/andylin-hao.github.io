@@ -1,5 +1,5 @@
 ---
-title: Importing Linux Kernel Code to VS Code and Enjoying Code Navigation
+title: Importing Linux Kernel Code to VS Code
 date: 2020-10-16
 permalink: /posts/import-kernel
 tags: 
