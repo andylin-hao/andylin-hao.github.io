@@ -34,8 +34,50 @@ Nothing is complex in the beginning. The same goes for the Linux graphics. In th
 At that time, only 2D rendering is necessary for computer graphics. Therefore, the initial ``libX11`` only includes 2D-related operations. However, with the advent of 3D graphics, the above-described architecture soon fails to satisfy people's needs. To perform 3D rendering on heterogeneous hardware,
 OpenGL is developed as the new GPU-agnostic interfaces for 3D operations. Specifically, OpenGL is only a series of function specifications that dictate only “what they do” but do not restrict “how to do it”. Thus, the actual OpenGL implementation is totally delegated to the system, which normally can be found in the ``libGL.so`` your 3D applications link to.
 
-To fully exploit the hardware capability and avoid complete refactoring of the whole stack, the initial implementation of OpenGL is built upon the 2D X server architecture. The technique that makes this possible is what we call the GL eXtenstion (``GLX``) of the X11 protocol. ``GLX`` is a wapper that wraps OpenGL function calls in X11. The X server then similarly receives X11 commands and translates them into the hardware language as before. Since this process involves wrapping into X11 and intervention of the X server rather than directly asks GPU to perform 3D operations, it is thus later known as indirect rendering (the left path of our architecture graph).
+To avoid complete refactoring of the whole stack, the initial implementation of OpenGL is built upon the 2D X server architecture. The technique that makes this possible is what we call the GL eXtenstion (``GLX``) of the X11 protocol. ``GLX`` is a wapper that wraps OpenGL function calls in X11. The X server then similarly receives X11 commands and translates them into the hardware language as before. Since this process involves wrapping into X11 and intervention of the X server rather than directly asks GPU to perform 3D operations, it is thus later known as indirect rendering (the left path of our architecture graph).
 
 Unfortunately, soon this indirect approach became insufficient for emerging 3D-intensive applications (e.g., 3D games) as it takes unnecessary detour to reach hardware. To address this, direct rendering is proposed.
 
 # Direct Rendering
+
+### Direct Rendering Infrastructure
+
+The idea of direct rendering is allowing OpenGL implementation 
+    to directly interface the hardware GPU without the intervention of X.
+To this end, the OpenGL library `libGL`'s implementation should know how to deal with the hardware interfaces.
+However, `libGL` is often a user-space library, 
+    which should not be given the privilege to handle hardware interactions.
+Instead, a dedicated kernel-space driver is developed to manipulate the GPU instead,
+    while providing user-space interfaces for `libGL` and other graphics libraries to use.
+Given that the driver is devised under the direct rendering framework,
+    it is often referred to as Direct Rendering Manager, or DRM for short.
+The above framework, including the user-space OpenGL library and the kernel-space DRM,
+    is often dubbed as Direct Rendering Infrastructure (DRI).
+
+### Kernel Space: Direct Rendering Manager
+
+The kernel-space DRM driver is responsible for allocating graphics memory, submitting drawing commands, and transferring graphics data, etc.
+Nowadays, even X interacts with the GPU through DRM.
+With DRM,
+First, the OpenGL library and other graphics libraries directly used by applications can still reside in the user space so that applications' frequent interactions with it do not incur frequent user/kernel switch, and
+Note that DRM is not the only implementation exist out there.
+Hardware GPU vendors like NVIDIA also has their own implementations of kernel-space drivers for interacting with the hardware,
+    which share similar functionalities as those of DRM.
+For example, NVIDIA has open-sourced its [Linux kernel driver](https://github.com/NVIDIA/open-gpu-kernel-modules).
+
+### User Space: Mesa OpenGL Library
+
+Apart from the kernel-space driver, another important part of DRI is the user-space library `libGL`.
+To implement the user-space library,
+    an issue is that different hardware platforms expose different interfaces and thus should come with different `libGL` implementations.
+However, naturally, different implementations still share a large amount of code and incur severe code duplications if managed separately.
+
+To address this, a generic framework is proposed to hold all open-source graphics libraries of Linux, which is Mesa.
+Mesa abstracts capabilities of a graphics library so that different implementations for different hardware platforms can share as much code as possible.
+As shown in the graph above,
+    the Mesa framework usually involves state tracker, pipe driver and WinSys driver.
+Specifically, state tracker abstracts the state management in various graphics languages (e.g., OpenGL and Direct3D), allowing Mesa to extend supports for languages beyond OpenGL.
+Pipe driver and WinSys driver abstract OS-specific interactions such as managing window.
+This unique architecture allows Mesa to hold OpenGL (and even Direct3D) libraries for GPUs of myriad vendors such as Intel, AMD, and NVIDIA.
+In fact, many virtualization-based GPU drivers such as those of VMware and QEMU virtio-gpu are also built within the Mesa framework.
+What a miracle!
