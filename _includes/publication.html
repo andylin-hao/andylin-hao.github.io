@@ -5,6 +5,7 @@
   {% else %}
   <strong>{{post.title}}</strong>
   {% endif %}
+  {% if post.award %}
   <b style="color: #C40233;"><i>(Awarded {{post.award}})</i></b>
   {% endif %}
   <br><i style="font-size: 11.5pt;">{{post.authors}}</i><br>
