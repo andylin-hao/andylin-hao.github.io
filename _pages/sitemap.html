@@ -1,0 +1,36 @@
+---
+layout: archive
+title: "Sitemap"
+permalink: /sitemap/
+author_profile: true
+---
+
+{% include base_path %}
+
+A list of all the posts and pages found on the site. For you robots out there is an <a href="{{ base_path }}/sitemap.xml">XML version</a> available for digesting as well.
+
+<!-- <h2>Pages</h2>
+{% for post in site.pages %}
+  {% include archive-single.html %}
+{% endfor %} -->
+
+<h2>Posts</h2>
+{% for post in site.posts %}
+  {% include archive-single.html %}
+{% endfor %}
+
+<h2>Publications</h2>
+<h3>Conference</h3>
+
+{% for post in site.publications reversed %}
+  {% if post.type == "conf" %}
+  {% include publication.html %}
+  {% endif%}
+{% endfor %}
+
+<h3>Journal</h3>
+{% for post in site.publications reversed %}
+  {% if post.type == "trans" %}
+  {% include publication.html %}
+  {% endif%}
+{% endfor %}
