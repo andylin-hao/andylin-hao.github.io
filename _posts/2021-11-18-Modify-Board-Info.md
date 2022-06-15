@@ -1,5 +1,5 @@
 ---
-title: Modify Board and CPU info in Android-x86
+title: Modify Board and CPU Info in Android-x86
 date: 2021-11-18
 permalink: /posts/modify-board
 tags: 
