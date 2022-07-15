@@ -1,0 +1,4 @@
+Sitemap: https://www.linhao.me/sitemap.xml
+
+User-agent: *
+Disallow:
