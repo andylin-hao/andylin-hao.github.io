@@ -9,4 +9,5 @@ selected: 'true'
 pdf: 'osdi22-trinity.pdf'
 authors: 'Di Gao, Hao Lin, Zhenhua Li, Chengen Huang, Yunhao Liu, Feng Qian, Liangyi Gong, and Tianyin Xu'
 repo: 'https://github.com/TrinityEmulator/TrinityEmulator'
+slide: 'osdi22-trinity-slide.pdf'
 ---
