@@ -1,6 +1,6 @@
 ---
 title: Enable VoLTE/ViLTE on Pixel in Unlisted Regions
-date: 2022-02-13
+date: 2022-10-25
 permalink: /posts/volte-pixel
 tags: 
     - Android
