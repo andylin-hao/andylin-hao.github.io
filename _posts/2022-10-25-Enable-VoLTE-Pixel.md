@@ -80,8 +80,7 @@ mcfg_sw/generic/China/CU/Commercial/VoLTE/mcfg_sw.mbn
 mcfg_sw/generic/China/CU/Lab/Test/mcfg_sw.mbn
 ```
 However, for different devices, the `mcfg_sw.mbn` files may not lie in the same paths.
-You should extract the whole `mcfg_sw` folder from your own phone and modify the `mbn_sw.txt` file according to the `mcfg_sw.mbn` files included in your `generic` folder.
-The original file can be found in the same path, i.e., `/system/vendor/rfs/msm/mpss/readonly/vendor/mbn/mcfg_sw/`, in your phone.
+You should extract the whole `mcfg_sw` folder from your own phone (which can be found in the same path, i.e., `/system/vendor/rfs/msm/mpss/readonly/vendor/mbn/mcfg_sw/` in the phone) and modify the `mbn_sw.txt` file in the folder according to the `mcfg_sw.mbn` files included in your `generic` folder.
 Also, the `mcfg_sw.mbn` files provided in my repo are extracted from Pixel 3 XL and not tested on other devices.
 You should always extract the `mcfg_sw.mbn` files from your own device, and replace the corresponding `mcfg_sw.mbn` files in my repo with your own `mcfg_sw.mbn` files.
 
@@ -101,6 +100,6 @@ Turn on/off airplane mode, and you should be able to make a video call now.
 
 When building Android from source, you should be able to do similar modifications to your built images.
 I've successfully done this with LineageOS, but am still working to port to AOSP.
-For LineageOS, the steps is quite simple.
+For LineageOS, the steps are quite simple.
 First, modify the `device.mk` file of your Pixel model and add the above system properties.
 Next, modify the `mbn_sw.txt` in the `vendor` folder (LineageOS will extract this file from your device as well before building).
