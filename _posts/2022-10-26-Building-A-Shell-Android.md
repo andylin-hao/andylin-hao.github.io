@@ -46,7 +46,7 @@ What you need to do is thus disguising your program as an app process (without l
 To this end, you should first prepare a main looper upon start and acquire the system context.
 Note that you should also ensure that the main thread is still running when you use this context to acquire system services.
 The code should look like this.
-```Java
+```java
 public static void main(String[] args) {
     // Prepare the main looper
     Looper.prepareMainLooper();
@@ -56,7 +56,9 @@ public static void main(String[] args) {
     System.out.println("Hello World");
 
     // This ensures that the main thread keeps running
-    // You can also execute your logic in a separate thread and wait for the thread to finish here, so that you don't need to call the loop() func
+    // You can also execute your logic in a separate thread 
+    // and wait for the thread to finish here, 
+    // so that you don't need to call the loop() func
     Looper.loop();
 }
 
