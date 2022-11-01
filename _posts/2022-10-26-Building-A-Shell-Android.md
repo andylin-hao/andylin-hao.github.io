@@ -1,5 +1,5 @@
 ---
-title: Building A Shell Program in Android
+title: Building A Sideload Shell Program in Android
 date: 2022-10-26
 permalink: /posts/android-shell
 tags: 
