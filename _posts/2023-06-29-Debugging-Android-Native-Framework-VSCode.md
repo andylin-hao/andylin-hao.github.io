@@ -27,12 +27,12 @@ Of course, the guest OS should be compiled by you whose symbol files are thus av
 ## Guest Setup
 
 1) Push the `lldb-server` executable in your Android SDK to the (emulated/real) device you wish to debug. The executable can be found in `Sdk/ndk/${NDK_VERSION}/toolchains/llvm/prebuilt/linux-x86_64/lib64/clang/${clang VERSION}/lib/linux/x86_64` as long as you have installed NDK in your SDK path (select NDK in your SDK management page in Android Studio). To push the executable, use the following command:
-    ```shell
+    ```bash
     adb push lldb-server /data/local/tmp
     ```
 
 2) Type the following commands to start the server and listens to a unix socket for connections:
-    ```shell
+    ```bash
     adb root # if your device has root access
     adb shell "chmod 777 /data/local/tmp/lldb-server"
     adb shell "/data/local/tmp/lldb-server p --server --listen unix-abstract:///data/local/tmp/debug.sock"
@@ -61,7 +61,7 @@ At the host side, you should have an Android/AOSP code base which matches the An
 2) Install the [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) extension in your VS Code.
 
 3) Click the `Run` tab of VS Code, select `Add configuration`, and select LLDB. This will create a `launch.json` file in your `.vscode` folder. Replace its content as follows
-    ```json
+    ```java
     {
     "configurations": [
     {
