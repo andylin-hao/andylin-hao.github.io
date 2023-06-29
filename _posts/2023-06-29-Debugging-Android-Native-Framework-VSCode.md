@@ -45,14 +45,14 @@ This post focuses on the latter case.
 
 4) Attaching the debugger to an already running app will be detailed later. Here we'll first look at *how to pause an app process' startup before the LLDB debugger is attached to it*.
 
-    This is useful when the component you wish to debug is still quite buggy and can easily crash the app before the debugger can even attach.
+This is useful when the component you wish to debug is still quite buggy and can easily crash the app before the debugger can even attach.
 The Android developer blog gives a detailed introduction of how to realize this via the jdb Java debugger. You can find it [here](https://source.android.com/docs/core/tests/debug/gdb#app-startup).
 
-    An important note is that the `jdb attach` command will not work if your Android Studio is also running.
-    Because Android Studio continuously monitors and preempts any available jdb connections,
+An important note is that the `jdb attach` command will not work if your Android Studio is also running.
+Because Android Studio continuously monitors and preempts any available jdb connections,
     rendering your connection attempts useless.
 
-    Also, naturally, to realize pausing before LLDB attaching, you should always attach jdb (and let the app continues in the Java layer) after LLDB is attached (to be detailed later).
+Also, naturally, to realize pausing before LLDB attaching, you should always attach jdb (and let the app continues in the Java layer) after LLDB is attached (to be detailed later).
 
 ## Host Setup
 At the host side, you should have an Android/AOSP code base which matches the Android OS run in your guest machine.
@@ -62,7 +62,7 @@ At the host side, you should have an Android/AOSP code base which matches the An
 2) Install the [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb) extension in your VS Code.
 
 3) Click the `Run` tab of VS Code, select `Add configuration`, and select LLDB. This will create a `launch.json` file in your `.vscode` folder. Replace its content as follows
-```java
+```json
 {
 "configurations": [
 {
@@ -87,7 +87,7 @@ At the host side, you should have an Android/AOSP code base which matches the An
 }
 ```
 where `${ANDROID_SRC}` is the path to your Android code base and `${PID}` is the process ID of the process you wish to debug.
-    Also, note that the `target.exec-search-paths` appended in the `initCommands` are not always the same for different Android versions. You need to check the paths and see if they actually exist, and whether there're missing folders that are not included.
+Also, note that the `target.exec-search-paths` appended in the `initCommands` are not always the same for different Android versions. You need to check the paths and see if they actually exist, and whether there're missing folders that are not included.
 
 4) Click the debug button of VS Code to begin debugging. Remember to change the `${PID}` for different debuggees.
 
