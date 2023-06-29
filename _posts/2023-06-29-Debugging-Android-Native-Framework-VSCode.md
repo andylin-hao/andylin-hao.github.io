@@ -44,9 +44,8 @@ This post focuses on the latter case.
 
 4) Attaching the debugger to an already running app will be detailed later. Here we'll first look at *how to pause an app process' startup before the LLDB debugger is attached to it*.
 
-
     This is useful when the component you wish to debug is still quite buggy and can easily crash the app before the debugger can even attach.
-The Android developer blog gives a detailed introduction of how to realize this via the `jdb` Java debugger. You can find it [here](https://source.android.com/docs/core/tests/debug/gdb#app-startup).
+The Android developer blog gives a detailed introduction of how to realize this via the jdb Java debugger. You can find it [here](https://source.android.com/docs/core/tests/debug/gdb#app-startup).
 
     An important note is that the `jdb attach` command will not work if your Android Studio is also running.
     Because Android Studio continuously monitors and preempts any available jdb connections,
