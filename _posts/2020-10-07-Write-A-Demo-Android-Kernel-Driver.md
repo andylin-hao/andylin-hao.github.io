@@ -10,13 +10,13 @@ tags:
 
 This post will talk about how to write a small "hello-world" driver in Android kernel.
 
-# Environment
+## Environment
 
 * Android version: Android-x86 (q-x86, x86_64_userdebug)
 * QEMU: 5.1
 * Host: Ubuntu 20.04
 
-# A Demo Driver
+## A Demo Driver
 
 * Create a new directory in ${android-source-root}/kernel/drivers named ``hello``
 

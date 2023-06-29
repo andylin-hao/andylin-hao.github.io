@@ -13,7 +13,7 @@ virtio-gpu属于virtio系列I/O虚拟化方案，采用类虚拟化设计，Gues
 
 <img src="{{site.url}}/images/posts/virtio.gif">
 
-### Guest端
+## Guest端
 
 * 操作系统启动时遍历PCI总线树，virtio-gpu作为一个PCI设备被OS检测到并注册
 
@@ -37,7 +37,7 @@ virtio-gpu属于virtio系列I/O虚拟化方案，采用类虚拟化设计，Gues
 
   方法是Guest写I/O寄存器，触发VM Exit进入到KVM中处理，进入到Host端流程
 
-### Host端
+## Host端
 
 * KVM无法处理而退出，处理退出原因发现是``KVM_EXIT_IO``，进而调用相应的Handle函数
 
