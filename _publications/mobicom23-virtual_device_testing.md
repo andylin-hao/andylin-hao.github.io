@@ -8,5 +8,6 @@ type: 'conf'
 selected: 'true'
 pdf: 'mobicom23-virtual_device_testing.pdf'
 authors: 'Hao Lin, Jiaxing Qiu, Hongyi Wang, Zhenhua Li, Liangyi Gong, Di Gao, Yunhao Liu, Feng Qian, Zhao Zhang, Ping Yang, Tianyin Xu'
+repo: 'https://github.com/Android-Emulation-Testing/emu-fidelity-ae'
 slide: 'mobicom23-virtual_device_testing-slide.pdf'
 ---
