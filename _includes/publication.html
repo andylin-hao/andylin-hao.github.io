@@ -6,7 +6,7 @@
   <strong>{{post.title}}</strong>
   {% endif %}
   {% if post.award %}
-  <b style="color: #C40233;"><i>(Awarded {{post.award}})</i></b>
+  <b style="color: #C40233;"><i>{{post.award}}</i></b>
   {% endif %}
   <br><i style="font-size: 11.5pt;">{{post.authors}}</i><br>
   <div style="font-size: 12pt;">
@@ -21,6 +21,9 @@
     {% endif %}
     {% if post.talk %}
     <a href="{{post.talk}}" target="_blank">Talk</a>
+    {% endif %}
+    {% if post.second_version %}
+    <a href="{{site.url}}/pdf/{{post.second_version}}">{{post.second_version_type}}</a>
     {% endif %}
   </div>
 </span>
