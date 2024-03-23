@@ -5,7 +5,7 @@ permalink: /publication/tmc23-responsiveness
 date: 2023-01-17
 venue: "TMC 2023"
 type: 'trans'
-selected: 'true'
+selected: 'false'
 pdf: 'tmc23-responsiveness.pdf'
 authors: 'Hao Lin, Cai Liu, Zhenhua Li, Feng Qian, Mingliang Li, Ping Xiong, and Yunhao Liu'
 repo: https://android-poor-respond.github.io/
