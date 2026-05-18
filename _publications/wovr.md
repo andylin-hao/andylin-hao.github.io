@@ -4,7 +4,7 @@ collection: publications
 permalink: /publication/wovr
 date: 2026-02-20
 venue: "arXiv"
-type: 'tech'
+type: 'conf'
 selected: 'false'
 pdf: 'arxiv-wovr.pdf'
 authors: "Zhennan Jiang, Shangqing Zhou, Yutong Jiang, Zefang Huang, Mingjie Wei, Yuhui Chen, Tianxing Zhou, Zhen Guo, Hao Lin, Quanlu Zhang, Yu Wang, Haoran Li, Chao Yu, Dongbin Zhao"
