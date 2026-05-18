@@ -10,7 +10,7 @@ locale                   : "en-US"
 title                    : "Hao Lin's Home Page"
 title_separator          : "-"
 name                     : &name "Hao Lin"
-description              : &description "A PhD student at Tsinghua University, who is interested in mobile operating systems and virtualization systems."
+description              : &description "A Lead Researcher at Infinigence, working on large-scale training systems for embodied and agentic AI."
 url                      : https://www.linhao.me # the base hostname & protocol for your site e.g. "https://mmistakes.github.io"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "andylin-hao/andylin-hao.github.io"
@@ -82,9 +82,9 @@ analytics:
 author:
   name             : "Hao Lin"
   avatar           : "profile.png"
-  bio              : "A PhD student at Tsinghua University, who is interested in mobile operating systems and virtualization systems."
+  bio              : "A Lead Researcher at Infinigence, working on large-scale training systems for embodied and agentic AI."
   location         : "Beijing, China"
-  employer         :
+  employer         : "Infinigence"
   pubmed           :
   googlescholar    : "https://scholar.google.com/citations?user=xkOzOOYAAAAJ&hl=en"
   email            : "linhaomails@gmail.com"
