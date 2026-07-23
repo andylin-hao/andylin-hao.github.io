@@ -2,7 +2,7 @@
 title: "RLinf: Flexible and Efficient Large-scale Reinforcement Learning via Macro-to-Micro Flow Transformation"
 collection: publications
 permalink: /publication/rlinf-osdi26
-date: 2026-07-10
+date: 2026-07-13
 venue: "OSDI'26"
 type: 'conf'
 selected: 'true'
