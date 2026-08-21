@@ -2,7 +2,7 @@
 title: "FUSCO: High-Performance Distributed Data Shuffling via Transformation-Communication Fusion"
 collection: publications
 permalink: /publication/fusco
-date: 2025-12-26
+date: 2027-04-28
 venue: "NSDI'27"
 type: 'conf'
 selected: 'true'
