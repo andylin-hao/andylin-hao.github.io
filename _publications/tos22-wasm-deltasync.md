@@ -6,6 +6,7 @@ date: 2022-09-01
 venue: "TOS 2022"
 type: 'trans'
 selected: 'false'
+pdf: 'tos22-wasm-deltasync.pdf'
 authors: "Jianwei Zheng, Zhenhua Li, Yuanhui Qiu, <b>Hao Lin</b>, He Xiao, Yang Li, and Yunhao Liu"
 repo: 'https://github.com/WASMDeltaSync'
 ---
