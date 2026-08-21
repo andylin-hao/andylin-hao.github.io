@@ -3,9 +3,9 @@ title: "FUSCO: High-Performance Distributed Data Shuffling via Transformation-Co
 collection: publications
 permalink: /publication/fusco
 date: 2025-12-26
-venue: "arXiv"
+venue: "NSDI'26"
 type: 'conf'
-selected: 'false'
+selected: 'true'
 pdf: 'arxiv-fusco.pdf'
 authors: "Zhuoran Zhu, Chunyang Zhu, <b>Hao Lin</b>, Xu Fu, Yiming Zhou, Quanlu Zhang, Zhenhua Li, Feng Qian, Chao Yu, Boxun Li, Guohao Dai, and Yu Wang"
 ---
