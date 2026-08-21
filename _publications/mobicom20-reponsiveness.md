@@ -7,7 +7,7 @@ venue: "MobiCom'20"
 type: 'conf'
 selected: 'true'
 pdf: 'mobicom20-responsiveness.pdf'
-authors: 'Mingliang Li, Hao Lin, Cai Liu, Zhenhua Li, Feng Qian, Yunhao Liu, Nian Sun, and Tianyin Xu'
+authors: 'Mingliang Li, <b>Hao Lin</b>, Cai Liu, Zhenhua Li, Feng Qian, Yunhao Liu, Nian Sun, and Tianyin Xu'
 repo: https://Android-Not-Respond.github.io
 slide: 'mobicom20-responsiveness-slide.pdf'
 talk: https://www.youtube.com/watch?v=wik2cbzGfVU

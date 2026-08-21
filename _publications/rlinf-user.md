@@ -7,6 +7,6 @@ venue: "RSS'26"
 type: 'conf'
 selected: 'true'
 pdf: 'rss26-rlinf-user.pdf'
-authors: "Hongzhi Zang, Shu'ang Yu, Hao Lin, Tianxing Zhou, Zefang Huang, Zhen Guo, Xin Xu, Jiakai Zhou, Yuze Sheng, Shizhe Zhang, Feng Gao, Wenhao Tang, Yufeng Yue, Quanlu Zhang, Xinlei Chen, Chao Yu, Yu Wang"
+authors: "Hongzhi Zang, Shu'ang Yu, <b>Hao Lin</b>, Tianxing Zhou, Zefang Huang, Zhen Guo, Xin Xu, Jiakai Zhou, Yuze Sheng, Shizhe Zhang, Feng Gao, Wenhao Tang, Yufeng Yue, Quanlu Zhang, Xinlei Chen, Chao Yu, Yu Wang"
 repo: 'https://github.com/RLinf/RLinf'
 ---

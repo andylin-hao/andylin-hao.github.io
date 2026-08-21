@@ -7,5 +7,5 @@ venue: "OSDI'26"
 type: 'conf'
 selected: 'true'
 pdf: 'osdi26-dyna-rl.pdf'
-authors: "Yuanqing Wang, Hao Lin, Junhao Hu, Chunyang Zhu, Quanlu Zhang, Zhen Guo, Yuchen Zhang, Xu Fu, Si Xu, Bo Dai, Zixiao Huang, Chao Yu, Boxun Li, Guohao Dai, Zhi Yang, Yu Wang"
+authors: "Yuanqing Wang, <b>Hao Lin</b>, Junhao Hu, Chunyang Zhu, Quanlu Zhang, Zhen Guo, Yuchen Zhang, Xu Fu, Si Xu, Bo Dai, Zixiao Huang, Chao Yu, Boxun Li, Guohao Dai, Zhi Yang, Yu Wang"
 ---

@@ -7,6 +7,6 @@ venue: "TMC 2023"
 type: 'trans'
 selected: 'false'
 pdf: 'tmc23-responsiveness.pdf'
-authors: 'Hao Lin, Cai Liu, Zhenhua Li, Feng Qian, Mingliang Li, Ping Xiong, and Yunhao Liu'
+authors: '<b>Hao Lin</b>, Cai Liu, Zhenhua Li, Feng Qian, Mingliang Li, Ping Xiong, and Yunhao Liu'
 repo: https://android-poor-respond.github.io/
 ---

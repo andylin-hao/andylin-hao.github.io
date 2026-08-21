@@ -7,7 +7,7 @@ venue: "SIGCOMM'21"
 type: 'conf'
 selected: 'true'
 pdf: 'sigcomm21-cellular.pdf'
-authors: 'Yang Li, Hao Lin, Zhenhua Li, Yunhao Liu, Feng Qian, Liangyi Gong, Xianlong Xin, and Tianyin Xu'
+authors: 'Yang Li, <b>Hao Lin</b>, Zhenhua Li, Yunhao Liu, Feng Qian, Liangyi Gong, Xianlong Xin, and Tianyin Xu'
 repo: 'https://CellularReliability.github.io'
 slide: 'sigcomm21-cellular-slide.pdf'
 talk: https://dl.acm.org/doi/abs/10.1145/3452296.3472908#sec-supp

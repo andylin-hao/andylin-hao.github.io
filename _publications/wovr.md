@@ -7,6 +7,6 @@ venue: "arXiv"
 type: 'conf'
 selected: 'false'
 pdf: 'arxiv-wovr.pdf'
-authors: "Zhennan Jiang, Shangqing Zhou, Yutong Jiang, Zefang Huang, Mingjie Wei, Yuhui Chen, Tianxing Zhou, Zhen Guo, Hao Lin, Quanlu Zhang, Yu Wang, Haoran Li, Chao Yu, Dongbin Zhao"
+authors: "Zhennan Jiang, Shangqing Zhou, Yutong Jiang, Zefang Huang, Mingjie Wei, Yuhui Chen, Tianxing Zhou, Zhen Guo, <b>Hao Lin</b>, Quanlu Zhang, Yu Wang, Haoran Li, Chao Yu, Dongbin Zhao"
 repo: 'https://github.com/RLinf/RLinf'
 ---

@@ -7,6 +7,6 @@ venue: "arXiv"
 type: 'conf'
 selected: 'false'
 pdf: 'arxiv-pi-rl.pdf'
-authors: "Kang Chen, Zhihao Liu, Tonghe Zhang, Zhen Guo, Si Xu, Hao Lin, Hongzhi Zang, Xiang Li, Quanlu Zhang, Zhaofei Yu, Guoliang Fan, Tiejun Huang, Yu Wang, Chao Yu"
+authors: "Kang Chen, Zhihao Liu, Tonghe Zhang, Zhen Guo, Si Xu, <b>Hao Lin</b>, Hongzhi Zang, Xiang Li, Quanlu Zhang, Zhaofei Yu, Guoliang Fan, Tiejun Huang, Yu Wang, Chao Yu"
 repo: 'https://github.com/RLinf/RLinf'
 ---

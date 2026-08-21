@@ -7,5 +7,5 @@ venue: "EuroSys'26"
 type: 'conf'
 selected: 'true'
 pdf: 'eurosys26-stalloc.pdf'
-authors: "Zixiao Huang, Junhao Hu, Hao Lin, Chunyang Zhu, Yueran Tang, Quanlu Zhang, Zhen Guo, Zhenhua Li, Shengen Yan, Zhenhua Zhu, Guohao Dai, Yu Wang"
+authors: "Zixiao Huang, Junhao Hu, <b>Hao Lin</b>, Chunyang Zhu, Yueran Tang, Quanlu Zhang, Zhen Guo, Zhenhua Li, Shengen Yan, Zhenhua Zhu, Guohao Dai, Yu Wang"
 ---
